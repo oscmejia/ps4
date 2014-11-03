@@ -565,8 +565,8 @@ class Mesh : Graph<V, E> {
    *
    * @return TriangleIterator
    */
-  edge2triangle_iterator edge2triangle_begin(Node n) const {
-    return edge2triangle_iterator( this, n.index(), 0);
+  edge2triangle_iterator edge2triangle_begin(Edge e) const {
+    return edge2triangle_iterator( this, e, 0);
   }
 
   /**
@@ -575,8 +575,13 @@ class Mesh : Graph<V, E> {
    *
    * @return TriangleIterator
    */
-  edge2triangle_iterator edge2triangle_end(Node n) const {
-    return edge2triangle_iterator( this, n.index(), adj_list_n2t_[n.index()].size() );
+  edge2triangle_iterator edge2triangle_end(Edge e) const {
+    // let's get the inner vector for the smaller uid. Same logic in the iterator
+    size_type uid = i2u_nodes_[edge.node1().index()];
+    if(i2u_nodes_[edge.node1().index] < i2u_nodes_[edge.node2().index()])
+      uid = i2u_nodes_[edge.node2().index()];
+    
+    return edge2triangle_iterator( this, e, adj_list_n2t_[uid].size() );
   }
 
 
