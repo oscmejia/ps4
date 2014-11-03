@@ -350,7 +350,7 @@ class Mesh : Graph<V, E> {
 
 
 
-  /** @class Graph::Node2TriangleIterator
+  /** @class Mesh::Node2TriangleIterator
    * @brief Iterator class for triangles incident to a node. A forward iterator. */
   class Node2TriangleIterator : private totally_ordered<Node2TriangleIterator>  {
 
@@ -382,7 +382,7 @@ class Mesh : Graph<V, E> {
         assert(m_->num_nodes() > 0);
         assert(m_->num_triangles() > 0);
         assert(m_->has_node(node)); // the cosntructure must receive a node, instead of the idx in order to do this validation
-        assert(g_->adj_list_n2t_.size() > node.index());
+        assert(m_->adj_list_n2t_.size() > node.index());
 
         idx_ = node.index();
         idx2_ = idx2;
@@ -446,6 +446,137 @@ class Mesh : Graph<V, E> {
    */
   node2triangle_iterator node2triangle_end(Node n) const {
     return node2triangle_iterator( this, n.index(), adj_list_n2t_[n.index()].size() );
+  }
+
+
+
+
+
+  /** @class Mesh::Edge2TriangleIterator
+   * @brief Iterator class for triangles incident to a node. A forward iterator. */
+  class Edge2TriangleIterator : private totally_ordered<Edge2TriangleIterator>  {
+
+    /** Reference to the mesh */
+    Mesh* m_;
+    /** Node uid */
+    idx_type node_uid_;
+    /** Node uid */
+    idx_type node2_uid_;
+    /** Node idx in inner vector adj_list_n2t_ */
+    idx_type idx2_;
+
+   public:
+    // These type definitions help us use STL's iterator_traits.
+    /** Element type. */
+    typedef Triangle value_type;
+    /** Type of pointers to elements. */
+    typedef Triangle* pointer;
+    /** Type of references to elements. */
+    typedef Triangle& reference;
+    /** Iterator category. */
+    typedef std::input_iterator_tag iterator_category;
+    /** Difference between iterators */
+    typedef std::ptrdiff_t difference_type;
+
+
+    /** Construct an invalid Edge2TriangleIterator. */
+    Edge2TriangleIterator(const Mesh* m, const Edge edge, idx_type idx2)
+      : g_(const_cast<Mesh*>(m)) {
+        assert(m_ != nullptr);
+        assert(m_->num_nodes() > 0);
+        assert(m_->num_triangles() > 0);
+        assert(m_->has_node(edge.node1()) && m_->has_node(edge.node2())); 
+        assert(m_->adj_list_n2t_.size() > edge.node1().index() &&
+          m_->adj_list_n2t_.size() > edge.node2().index());
+
+        if(i2u_nodes_[edge.node1().index] < i2u_nodes_[edge.node2().index()]){
+          node_uid_ = i2u_nodes_[edge.node1().index()];
+          node_uid2_ = i2u_nodes_[edge.node2().index()];
+        }
+        else{
+          node_uid_ = i2u_nodes_[edge.node2().index()];
+          node_uid2_ = i2u_nodes_[edge.node1().index()];
+        }
+
+        idx2_ = idx2;
+    }
+
+    /**
+     * Reference operator for Triangle.
+     * Complexity: O(1).
+     *
+     * @return Triangle object.
+     */
+    Triangle operator*() const {
+      return Triangle(m_, 
+        m_->internal_triangles_[idx_].uid1, 
+        m_->internal_triangles_[idx_].uid2,
+        m_->internal_triangles_[idx_].uid3 );
+    }
+
+    /**
+    * edge2triangle_iterator operator++. It will get to the next triangle.
+    * Complexity: O(1).
+    *
+    * @return edge2triangle_iterator object.
+    */
+    edge2triangle_iterator& operator++() {
+      
+      while(idx2_ < adj_list_n2t_.size()){
+        ++idx2_;
+
+        // TODO: find a more elegant way to do this check.
+        // Check if this triangle contains the edge
+        internal_triangle t = adj_list_n2t_[idx2_];
+        if( (i2u_nodes_[t.node1().index()] == node1_uid_ && i2u_nodes_[t.node2().index()] == node2_uid_) ||
+            (i2u_nodes_[t.node2().index()] == node1_uid_ && i2u_nodes_[t.node3().index()] == node2_uid_) ||
+            (i2u_nodes_[t.node1().index()] == node1_uid_ && i2u_nodes_[t.node3().index()] == node2_uid_) ||
+            (i2u_nodes_[t.node1().index()] == node2_uid_ && i2u_nodes_[t.node2().index()] == node1_uid_) ||
+            (i2u_nodes_[t.node2().index()] == node2_uid_ && i2u_nodes_[t.node3().index()] == node1_uid_) ||
+            (i2u_nodes_[t.node1().index()] == node2_uid_ && i2u_nodes_[t.node3().index()] == node1_uid_) 
+          ){
+          return *this;
+        }
+      }
+
+      // this is one pass the last valid
+      idx2_ = adj_list_n2t_.size();
+      return *this;
+    }
+
+    /**
+    * Compare Edge2TriangleIterator's.
+    * Complexity: O(1).
+    *
+    * @return bool if both iterators are equal.
+    */
+    bool operator==(const edge2triangle_iterator& tit) const {
+      return std::tie(node_uid_, idx2_, m_) == std::tie(tit.node_uid_, tit.idx2_, tit.m_);
+    }
+
+   private:
+    friend class Mesh;
+
+  };
+
+  /**
+   * Return a edge2triangle_iterator pointing to the begining
+   * Complexity: O(1).
+   *
+   * @return TriangleIterator
+   */
+  edge2triangle_iterator edge2triangle_begin(Node n) const {
+    return edge2triangle_iterator( this, n.index(), 0);
+  }
+
+  /**
+   * Return a edge2triangle_iterator pointing to one pass the last valid position.
+   * Complexity: O(1).
+   *
+   * @return TriangleIterator
+   */
+  edge2triangle_iterator edge2triangle_end(Node n) const {
+    return edge2triangle_iterator( this, n.index(), adj_list_n2t_[n.index()].size() );
   }
 
 
