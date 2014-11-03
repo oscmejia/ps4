@@ -127,17 +127,17 @@ class Mesh : Graph<V, E> {
 
       /** Return node 1 of this Triangle */
       Node node1() const {
-        return Node(g_, node1_uid);
+        return Node(m_, uid1_);
       }
 
       /** Return node 2 of this Triangle */
       Node node2() const {
-        return Node(g_, node2_uid);
+        return Node(m_, uid2_);
       }
 
       /** Return node 3 of this Triangle */
       Node node3() const {
-        return Node(g_, node3_uid);
+        return Node(m_, uid3_);
       }
 
       /**
@@ -147,19 +147,23 @@ class Mesh : Graph<V, E> {
        * @return   Edge
        */
       Edge edge(Node a, Node b) const {
-        assert(i2u_nodes_[a.index()] == node1_uid || 
-          i2u_nodes_[a.index()] == node2_uid || 
-          i2u_nodes_[a.index()] == node3_uid);
-        assert(i2u_nodes_[b.index()] == node1_uid || 
-          i2u_nodes_[b.index()] == node2_uid || 
-          i2u_nodes_[b.index()] == node3_uid);
+        assert(i2u_nodes_[a.index()] == uid1_ || 
+          i2u_nodes_[a.index()] == uid2_ || 
+          i2u_nodes_[a.index()] == uid3_);
+        assert(i2u_nodes_[b.index()] == uid1_ || 
+          i2u_nodes_[b.index()] == uid2_ || 
+          i2u_nodes_[b.index()] == uid3_);
 
         return Edge(this, i2u_nodes_[a.index()], i2u_nodes_[b.index()]);
       }
 
 
       double area() const {
-
+        // http://www.mathopenref.com/coordtrianglearea.html
+        Point a = internal_modes_[uid1_].point;
+        Point b = internal_modes_[uid2_].point;
+        Point c = internal_modes_[uid3_].point;
+        return std::abs( (a.x*(b.y-c.y) + b.x*(c.y-a.y) + c.x*(a.y-b.y)) / (2) );
       }
 
 
@@ -168,7 +172,7 @@ class Mesh : Graph<V, E> {
        * Equal triangles are from the same mesh and have the same nodes and edges.
        */
       bool operator==(const Triangle& x) const {
-        return std::tie(m_, node1_uid, node2_uid, node3_uid) == std::tie(x.m_, x.node1_uid, x.node2_uid, x.node3_uid);
+        return std::tie(m_, uid1_, uid2_, uid3_) == std::tie(x.m_, x.uid1_, x.uid2_, x.uid3_);
       }
 
       /** Test whether this triangle is less than @a x in the global order.
