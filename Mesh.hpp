@@ -125,28 +125,36 @@ class Mesh : Graph<V, E> {
       Triangle() {
       }
 
-      /** Return a node of this Edge */
+      /** Return node 1 of this Triangle */
       Node node1() const {
         return Node(g_, node1_uid);
       }
 
-      /** Return the other node of this Triangle */
+      /** Return node 2 of this Triangle */
       Node node2() const {
         return Node(g_, node2_uid);
       }
 
+      /** Return node 3 of this Triangle */
       Node node3() const {
         return Node(g_, node3_uid);
       }
 
       /**
-       * [edge description]
-       * @param  a [description]
-       * @param  b [description]
-       * @return   [description]
+       * Return an edge for 2 triangle nodes 
+       * @param  a node
+       * @param  b node
+       * @return   Edge
        */
       Edge edge(Node a, Node b) const {
+        assert(i2u_nodes_[a.index()] == node1_uid || 
+          i2u_nodes_[a.index()] == node2_uid || 
+          i2u_nodes_[a.index()] == node3_uid);
+        assert(i2u_nodes_[b.index()] == node1_uid || 
+          i2u_nodes_[b.index()] == node2_uid || 
+          i2u_nodes_[b.index()] == node3_uid);
 
+        return Edge(this, i2u_nodes_[a.index()], i2u_nodes_[b.index()]);
       }
 
 
@@ -157,10 +165,10 @@ class Mesh : Graph<V, E> {
 
       /** Test whether this triangle and @a x are equal.
        *
-       * Equal triangles are from the same graph and have the same nodes and edges.
+       * Equal triangles are from the same mesh and have the same nodes and edges.
        */
       bool operator==(const Triangle& x) const {
-        return std::tie(g_, node1_uid, node2_uid, node3_uid) == std::tie(x.g_, x.node1_uid, x.node2_uid, x.node3_uid);
+        return std::tie(m_, node1_uid, node2_uid, node3_uid) == std::tie(x.m_, x.node1_uid, x.node2_uid, x.node3_uid);
       }
 
       /** Test whether this triangle is less than @a x in the global order.
@@ -172,7 +180,7 @@ class Mesh : Graph<V, E> {
        * and y, exactly one of x == y, x < y, and y < x is true.
        */
       bool operator<(const Triangle& x) const {
-        //return std::tie(g_, node1_uid, node2_uid) < std::tie(x.g_, x.node1_uid, x.node2_uid);
+        return std::tie(m_, node1_uid, node2_uid, node3_uid) < std::tie(x.m_, x.node1_uid, x.node2_uid, x.node3_uid);
       }
 
       double length () const {
@@ -185,7 +193,7 @@ class Mesh : Graph<V, E> {
        * @return Object of type T by reference
        */
       triangle_value_type& value() {
-
+        return  internal_triangles_[t_uid].value;
       }
 
       /**
@@ -194,7 +202,7 @@ class Mesh : Graph<V, E> {
        * @return Object of type T by reference as a constant.
        */
       const triangle_value_type& value() const {
-        //return internal_triangles_[]
+        return  internal_triangles_[t_uid].value;
       }
 
 

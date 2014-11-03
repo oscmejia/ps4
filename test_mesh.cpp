@@ -24,7 +24,7 @@ void sf_print(bool sf, string msg = "") {
   if (sf)
     cerr << msg << " [Success]" << endl;
   else {
-    cerr << msg << "*********************************************** [FAIL]" << endl;
+    cerr << msg << " [FAIL]" << endl;
     ++fail_count;
   }
 }
