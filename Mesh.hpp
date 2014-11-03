@@ -396,7 +396,7 @@ class Mesh : Graph<V, E> {
      */
     Triangle operator*() const {
       return Triangle(m_, 
-        m_->i2u_triangles_[idx_], 
+        m_->internal_triangles_[idx_].uid1, 
         m_->internal_triangles_[idx_].uid2,
         m_->internal_triangles_[idx_].uid3 );
     }
@@ -409,7 +409,7 @@ class Mesh : Graph<V, E> {
     */
     Node2TriangleIterator& operator++() {
       ++idx2_;
-      assert(idx2_ <= m_->adj_list_n2t_.size());
+      assert(idx2_ < m_->adj_list_n2t_.size());
       return *this;
     }
 
