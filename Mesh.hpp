@@ -15,7 +15,7 @@
  * Users can add and retrieve nodes, edges and triangles.
  */
 template <typename V, typename E, typename T>
-class Mesh : Graph<V, E> {
+class Mesh : public Graph<V, E> {
 
  public:
 
@@ -58,6 +58,7 @@ class Mesh : Graph<V, E> {
   typedef Edge2TriangleIterator edge2triangle_iterator;
 
 
+   
   /** @struct InternalTriangle */
   struct InternalTriangle
   {
@@ -68,7 +69,7 @@ class Mesh : Graph<V, E> {
     triangle_value_type value;
 
     InternalTriangle(size_type uid1, size_type uid2, size_type uid3, size_type idx, triangle_value_type value) 
-      : uid2(uid1), uid2(uid2), uid3(uid3), idx(idx), value(value) {
+      : uid1(uid1), uid2(uid2), uid3(uid3), idx(idx), value(value) {
     }
   };
 
@@ -163,7 +164,7 @@ class Mesh : Graph<V, E> {
         Point a = internal_modes_[uid1_].point;
         Point b = internal_modes_[uid2_].point;
         Point c = internal_modes_[uid3_].point;
-        return std::abs( (a.x*(b.y-c.y) + b.x*(c.y-a.y) + c.x*(a.y-b.y)) / (2) );
+        return std::abs( ( a.x*(b.y-c.y) + b.x*(c.y-a.y) + c.x*(a.y-b.y) ) / (2) );
       }
 
 
@@ -188,6 +189,7 @@ class Mesh : Graph<V, E> {
       }
 
       double length () const {
+        // TODO
         //return norm(node1().position() - node2().position());
       }
 
@@ -197,7 +199,7 @@ class Mesh : Graph<V, E> {
        * @return Object of type T by reference
        */
       triangle_value_type& value() {
-        return  internal_triangles_[t_uid].value;
+        return  internal_triangles_[t_uid_].value;
       }
 
       /**
@@ -206,14 +208,14 @@ class Mesh : Graph<V, E> {
        * @return Object of type T by reference as a constant.
        */
       const triangle_value_type& value() const {
-        return  internal_triangles_[t_uid].value;
+        return  internal_triangles_[t_uid_].value;
       }
 
 
     private:
       
       Triangle(Mesh* m, size_type t_uid, size_type uid1, size_type uid2, size_type uid3) 
-        : m_(const_cast<Mesh*>(m)), t_uid_(t_uid) uid1_(uid1), uid2_(uid2), uid3_(uid3) {
+        : m_(const_cast<Mesh*>(m)), t_uid_(t_uid), uid1_(uid1), uid2_(uid2), uid3_(uid3) {
       }
 
       Mesh* m_;
@@ -381,7 +383,7 @@ class Mesh : Graph<V, E> {
 
     /** Construct an invalid Node2TriangleIterator. */
     Node2TriangleIterator(const Mesh* m, const Node node, idx_type idx2)
-      : g_(const_cast<Mesh*>(m)) {
+      : m_(const_cast<Mesh*>(m)) {
         assert(m_ != nullptr);
         assert(m_->num_nodes() > 0);
         assert(m_->num_triangles() > 0);
@@ -485,7 +487,7 @@ class Mesh : Graph<V, E> {
 
     /** Construct an invalid Edge2TriangleIterator. */
     Edge2TriangleIterator(const Mesh* m, const Edge edge, idx_type idx2)
-      : g_(const_cast<Mesh*>(m)) {
+      : m_(const_cast<Mesh*>(m)) {
         assert(m_ != nullptr);
         assert(m_->num_nodes() > 0);
         assert(m_->num_triangles() > 0);
@@ -495,11 +497,11 @@ class Mesh : Graph<V, E> {
 
         if(i2u_nodes_[edge.node1().index] < i2u_nodes_[edge.node2().index()]){
           node_uid_ = i2u_nodes_[edge.node1().index()];
-          node_uid2_ = i2u_nodes_[edge.node2().index()];
+          node2_uid_ = i2u_nodes_[edge.node2().index()];
         }
         else{
           node_uid_ = i2u_nodes_[edge.node2().index()];
-          node_uid2_ = i2u_nodes_[edge.node1().index()];
+          node2_uid_ = i2u_nodes_[edge.node1().index()];
         }
 
         idx2_ = idx2;
@@ -605,6 +607,7 @@ class Mesh : Graph<V, E> {
   /** Keep track of the number of triangles */
   size_type num_triangles_ = 0;
 
+  friend class Graph<V,E>;
 };
 
 #endif
