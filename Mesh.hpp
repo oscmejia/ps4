@@ -115,6 +115,11 @@ class Mesh {
     return g_nodes_.num_nodes();
   }
 
+  /** Accessing outward normal vectors of an edge of a triangle.*/
+  std:vector<double> normals_vector(const Triangle& t, const& Edge e) {
+
+  }
+
 
   ////////////////////
   // MESH NODES     //
@@ -358,7 +363,7 @@ class Mesh {
 
 
 
-  
+
 
 
  private:
