@@ -14,8 +14,8 @@
  *
  * Users can add and retrieve nodes, edges and triangles.
  */
-template <typename V, typename E, typename T>
-class Mesh : public Graph<V, E> {
+template <typename T>
+class Mesh {
 
  public:
 
@@ -36,28 +36,10 @@ class Mesh : public Graph<V, E> {
   typedef unsigned idx_type;
 
   /** Define types from Graph */
-  typedef Graph<V,E> GraphType;
-  typedef typename Graph<V,E>::Node Node;
-  typedef typename Graph<V,E>::Edge Edge;
-  typedef typename Graph<V,E>::node_type node_type;
-  typedef typename Graph<V,E>::edge_type edge_type;
+  typedef Graph<int,int> GraphType;
+  typedef typename GraphType::Node Node;
+  typedef typename GraphType::Edge Edge;
   
-  /** Type of triangle iterators, which iterate over all mesh triangles. */
-  class TriangleIterator;
-  /** Synonym for TriangleIterator */
-  typedef TriangleIterator triangle_iterator;
-
-  /** Type of node2triangle iterators, which iterate over all triangles adjacent to a node. */
-  class Node2TriangleIterator;
-  /** Synonym for Node2TriangleIterator */
-  typedef Node2TriangleIterator node2triangle_iterator;
-
-  /** Type of edge2triangle iterators, which iterate over all triangles adjacent to an edge. */
-  class Edge2TriangleIterator;
-  /** Synonym for Edge2TriangleIterator */
-  typedef Edge2TriangleIterator edge2triangle_iterator;
-
-
    
   /** @struct InternalTriangle */
   struct InternalTriangle
@@ -77,7 +59,7 @@ class Mesh : public Graph<V, E> {
   typedef InternalTriangle internal_triangle;
 
   /** Inner vector of idxs for nodes to triangles */
-  typedef std::vector<idx_type> idx_list_type;
+  //typedef std::vector<idx_type> idx_list_type;
 
   ////////////////////////////////
   // CONSTRUCTOR AND DESTRUCTOR //
@@ -101,8 +83,7 @@ class Mesh : public Graph<V, E> {
    * Invalidates all outstanding Node, Edge and Triangle objects.
    */
   void clear() {
-    std::cout << "Mesh.clean()" << std::endl;
-    // call g.clear()
+    
   }
 
 
@@ -111,6 +92,14 @@ class Mesh : public Graph<V, E> {
     return num_triangles_();
   }
 
+
+  class TNode : private totally_ordered<TNode>  {
+
+  };
+
+  class TEdges : private totally_ordered<TEdges>  {
+
+  };
 
   ////////////////////
   // MESH TRIANGLES //
@@ -141,22 +130,6 @@ class Mesh : public Graph<V, E> {
         return Node(m_, uid3_);
       }
 
-      /**
-       * Return an edge for 2 triangle nodes 
-       * @param  a node
-       * @param  b node
-       * @return   Edge
-       */
-      Edge edge(Node a, Node b) const {
-        assert(i2u_nodes_[a.index()] == uid1_ || 
-          i2u_nodes_[a.index()] == uid2_ || 
-          i2u_nodes_[a.index()] == uid3_);
-        assert(i2u_nodes_[b.index()] == uid1_ || 
-          i2u_nodes_[b.index()] == uid2_ || 
-          i2u_nodes_[b.index()] == uid3_);
-
-        return Edge(this, i2u_nodes_[a.index()], i2u_nodes_[b.index()]);
-      }
 
 
       double area() const {
@@ -199,7 +172,7 @@ class Mesh : public Graph<V, E> {
        * @return Object of type T by reference
        */
       triangle_value_type& value() {
-        return  internal_triangles_[t_uid_].value;
+        //return  internal_triangles_[t_uid_].value;
       }
 
       /**
@@ -208,7 +181,7 @@ class Mesh : public Graph<V, E> {
        * @return Object of type T by reference as a constant.
        */
       const triangle_value_type& value() const {
-        return  internal_triangles_[t_uid_].value;
+        //return  internal_triangles_[t_uid_].value;
       }
 
 
@@ -219,9 +192,9 @@ class Mesh : public Graph<V, E> {
       }
 
       Mesh* m_;
-      size_type uid1_;
-      size_type uid2_;
-      size_type uid3_;
+      Node node1;
+      Node node2;
+      Node node3;
       size_type t_uid_;
 
       friend class Mesh;
@@ -229,7 +202,7 @@ class Mesh : public Graph<V, E> {
   };
 
   /** Add an triangle to the graph, or return the current triangle if it already exists.
-   * @pre @a a, @a b and @a c are distinct valid nodes of the graph
+   * @pre @a a, @a b and @a c are distinct points that confirm a triangle
    * @return an Triangle object e with t.node1() == @a a, t.node2() == @a b and t.node3() == @a c
    * @post has_edge(@a a, @a b) == true
    * @post If old has_edge(@a a, @a b), new num_edges() == old num_edges().
@@ -240,359 +213,19 @@ class Mesh : public Graph<V, E> {
    *
    * Complexity: No more than O(num_nodes() + num_edges()), hopefully less
    */
-  Triangle add_triangle(const Node& a, const Node& b, const Node& c, const triangle_value_type& value = triangle_value_type()) {
-    assert(num_nodes() > 0);
-    assert(has_node(a) && has_node(b) && has_node(c));
-    assert(a != b && a != c && b != c);
-    
-    // TODO: should we sort node uids ?
-    
-    idx_type idx = i2u_triangles_.size();
-    size_type t_uid = internal_triangles_.size();
+  Triangle add_triangle(const Point& a, const Point& b, const Point& c, const triangle_value_type& value = triangle_value_type()) {
+    assert(a != b && b != c && a != c);
 
-    internal_triangles_.push_back(InternalTriangle(i2u_nodes_[a.index], i2u_nodes_[b.index], i2u_nodes_[c.index], idx, value);
-    i2u_triangles_.push_back(t_uid);
-
-    return Triangle(this, t_uid, i2u_nodes_[a.index], i2u_nodes_[b.index], i2u_nodes_[c.index]);
   }
 
 
-  ///////////////
-  // Iterators //
-  ///////////////
-
-  /** @class Mesh::TriangleIterator
-   * @brief Iterator class for triangles. A forward iterator. */
-  class TriangleIterator : private totally_ordered<TriangleIterator> {
-
-   public:
-    // These type definitions help us use STL's iterator_traits.
-    /** Element type. */
-    typedef Triangle value_type;
-    /** Type of pointers to elements. */
-    typedef Triangle* pointer;
-    /** Type of references to elements. */
-    typedef Triangle& reference;
-    /** Iterator category. */
-    typedef std::input_iterator_tag iterator_category;
-    /** Difference between iterators */
-    typedef std::ptrdiff_t difference_type;
-
-    /** Construct an invalid TriangleIterator. */
-    TriangleIterator() {
-    }
-
-    /**
-     * Reference operator for TriangleIterator.
-     * Complexity: O(1).
-     *
-     * @Return Node object.
-     */
-    Triangle operator*() const {
-      return Triangle(m_, 
-        m_->i2u_triangles_[idx_], 
-        m_->internal_triangles_[idx_].uid2,
-        m_->internal_triangles_[idx_].uid3 );
-    }
-
-    /**
-     * Incremental Operator for TriangleIterator.
-     * Complexity: O(1).
-     *
-     * @Return TriangleIterator object by reference.
-     */
-    TriangleIterator& operator++() {
-      ++idx_;
-      return *this;
-    }
-
-    /**
-     * Equialy Operator for TriangleIterator.
-     * Complexity: O(1).
-     *
-     * @Return bool, true if both TriangleIterator's are equial.
-     */
-    bool operator==(const TriangleIterator& other) const {
-      return std::tie(m_, idx_) == std::tie(other.m_, other.idx_);
-    }
-
-   private:
-
-    TriangleIterator(const Mesh* m, idx_type idx)
-        : m_(const_cast<Mesh*>(m)), idx_(idx) {
-    }
-
-    /** Reference to the mesh */
-    Mesh* m_;
-    /** Triangle idx */
-    idx_type idx_;
-
-    friend class Mesh;
-  };
-
-  /**
-   * Return a node_iterator pointing to the begining
-   * Complexity: O(1).
-   *
-   * @return TriangleIterator
-   */
-  triangle_iterator triangle_begin() const {
-    return triangle_iterator( this, 0 );
-  }
-
-  /**
-   * Return a node_iterator pointing to one pass the last valid position.
-   * Complexity: O(1).
-   *
-   * @return TriangleIterator
-   */
-  triangle_iterator triangle_end() const {
-    return triangle_iterator( this, i2u_triangles_.size() );
-  }
-
-
-
-
-
-
-
-  /** @class Mesh::Node2TriangleIterator
-   * @brief Iterator class for triangles incident to a node. A forward iterator. */
-  class Node2TriangleIterator : private totally_ordered<Node2TriangleIterator>  {
-
-    /** Reference to the mesh */
-    Mesh* m_;
-    /** Node idx */
-    idx_type idx_;
-    /** Node idx in inner vector adj_list_n2t_ */
-    idx_type idx2_;
-
-   public:
-    // These type definitions help us use STL's iterator_traits.
-    /** Element type. */
-    typedef Triangle value_type;
-    /** Type of pointers to elements. */
-    typedef Triangle* pointer;
-    /** Type of references to elements. */
-    typedef Triangle& reference;
-    /** Iterator category. */
-    typedef std::input_iterator_tag iterator_category;
-    /** Difference between iterators */
-    typedef std::ptrdiff_t difference_type;
-
-
-    /** Construct an invalid Node2TriangleIterator. */
-    Node2TriangleIterator(const Mesh* m, const Node node, idx_type idx2)
-      : m_(const_cast<Mesh*>(m)) {
-        assert(m_ != nullptr);
-        assert(m_->num_nodes() > 0);
-        assert(m_->num_triangles() > 0);
-        assert(m_->has_node(node)); // the cosntructure must receive a node, instead of the idx in order to do this validation
-        assert(m_->adj_list_n2t_.size() > node.index());
-
-        idx_ = node.index();
-        idx2_ = idx2;
-    }
-
-    /**
-     * Reference operator for Triangle.
-     * Complexity: O(1).
-     *
-     * @return Triangle object.
-     */
-    Triangle operator*() const {
-      return Triangle(m_, 
-        m_->internal_triangles_[idx_].uid1, 
-        m_->internal_triangles_[idx_].uid2,
-        m_->internal_triangles_[idx_].uid3 );
-    }
-
-    /**
-    * Node2TriangleIterator operator++. It will get to the next triangle.
-    * Complexity: O(1).
-    *
-    * @return Node2TriangleIterator object.
-    */
-    Node2TriangleIterator& operator++() {
-      ++idx2_;
-      assert(idx2_ < m_->adj_list_n2t_.size());
-      return *this;
-    }
-
-    /**
-    * Compare Node2TriangleIterator's.
-    * Complexity: O(1).
-    *
-    * @return bool if both iterators are equal.
-    */
-    bool operator==(const Node2TriangleIterator& tit) const {
-      return std::tie(idx_, idx2_, m_) == std::tie(tit.idx_, tit.idx2_, tit.m_);
-    }
-
-   private:
-    friend class Mesh;
-
-  };
-
-  /**
-   * Return a node2triangle_iterator pointing to the begining
-   * Complexity: O(1).
-   *
-   * @return TriangleIterator
-   */
-  node2triangle_iterator node2triangle_begin(Node n) const {
-    return node2triangle_iterator( this, n.index(), 0);
-  }
-
-  /**
-   * Return a node2triangle_iterator pointing to one pass the last valid position.
-   * Complexity: O(1).
-   *
-   * @return TriangleIterator
-   */
-  node2triangle_iterator node2triangle_end(Node n) const {
-    return node2triangle_iterator( this, n.index(), adj_list_n2t_[n.index()].size() );
-  }
-
-
-
-
-
-  /** @class Mesh::Edge2TriangleIterator
-   * @brief Iterator class for triangles incident to a node. A forward iterator. */
-  class Edge2TriangleIterator : private totally_ordered<Edge2TriangleIterator>  {
-
-    /** Reference to the mesh */
-    Mesh* m_;
-    /** Node uid */
-    idx_type node_uid_;
-    /** Node uid */
-    idx_type node2_uid_;
-    /** Node idx in inner vector adj_list_n2t_ */
-    idx_type idx2_;
-
-   public:
-    // These type definitions help us use STL's iterator_traits.
-    /** Element type. */
-    typedef Triangle value_type;
-    /** Type of pointers to elements. */
-    typedef Triangle* pointer;
-    /** Type of references to elements. */
-    typedef Triangle& reference;
-    /** Iterator category. */
-    typedef std::input_iterator_tag iterator_category;
-    /** Difference between iterators */
-    typedef std::ptrdiff_t difference_type;
-
-
-    /** Construct an invalid Edge2TriangleIterator. */
-    Edge2TriangleIterator(const Mesh* m, const Edge edge, idx_type idx2)
-      : m_(const_cast<Mesh*>(m)) {
-        assert(m_ != nullptr);
-        assert(m_->num_nodes() > 0);
-        assert(m_->num_triangles() > 0);
-        assert(m_->has_node(edge.node1()) && m_->has_node(edge.node2())); 
-        assert(m_->adj_list_n2t_.size() > edge.node1().index() &&
-          m_->adj_list_n2t_.size() > edge.node2().index());
-
-        if(i2u_nodes_[edge.node1().index] < i2u_nodes_[edge.node2().index()]){
-          node_uid_ = i2u_nodes_[edge.node1().index()];
-          node2_uid_ = i2u_nodes_[edge.node2().index()];
-        }
-        else{
-          node_uid_ = i2u_nodes_[edge.node2().index()];
-          node2_uid_ = i2u_nodes_[edge.node1().index()];
-        }
-
-        idx2_ = idx2;
-    }
-
-    /**
-     * Reference operator for Triangle.
-     * Complexity: O(1).
-     *
-     * @return Triangle object.
-     */
-    Triangle operator*() const {
-      return Triangle(m_, 
-        m_->internal_triangles_[idx_].uid1, 
-        m_->internal_triangles_[idx_].uid2,
-        m_->internal_triangles_[idx_].uid3 );
-    }
-
-    /**
-    * edge2triangle_iterator operator++. It will get to the next triangle.
-    * Complexity: O(1).
-    *
-    * @return edge2triangle_iterator object.
-    */
-    edge2triangle_iterator& operator++() {
-      
-      while(idx2_ < adj_list_n2t_.size()){
-        ++idx2_;
-
-        // TODO: find a more elegant way to do this check.
-        // Check if this triangle contains the edge
-        internal_triangle t = adj_list_n2t_[idx2_];
-        if( (i2u_nodes_[t.node1().index()] == node1_uid_ && i2u_nodes_[t.node2().index()] == node2_uid_) ||
-            (i2u_nodes_[t.node2().index()] == node1_uid_ && i2u_nodes_[t.node3().index()] == node2_uid_) ||
-            (i2u_nodes_[t.node1().index()] == node1_uid_ && i2u_nodes_[t.node3().index()] == node2_uid_) ||
-            (i2u_nodes_[t.node1().index()] == node2_uid_ && i2u_nodes_[t.node2().index()] == node1_uid_) ||
-            (i2u_nodes_[t.node2().index()] == node2_uid_ && i2u_nodes_[t.node3().index()] == node1_uid_) ||
-            (i2u_nodes_[t.node1().index()] == node2_uid_ && i2u_nodes_[t.node3().index()] == node1_uid_) 
-          ){
-          return *this;
-        }
-      }
-
-      // this is one pass the last valid
-      idx2_ = adj_list_n2t_.size();
-      return *this;
-    }
-
-    /**
-    * Compare Edge2TriangleIterator's.
-    * Complexity: O(1).
-    *
-    * @return bool if both iterators are equal.
-    */
-    bool operator==(const edge2triangle_iterator& tit) const {
-      return std::tie(node_uid_, idx2_, m_) == std::tie(tit.node_uid_, tit.idx2_, tit.m_);
-    }
-
-   private:
-    friend class Mesh;
-
-  };
-
-  /**
-   * Return a edge2triangle_iterator pointing to the begining
-   * Complexity: O(1).
-   *
-   * @return TriangleIterator
-   */
-  edge2triangle_iterator edge2triangle_begin(Edge e) const {
-    return edge2triangle_iterator( this, e, 0);
-  }
-
-  /**
-   * Return a edge2triangle_iterator pointing to one pass the last valid position.
-   * Complexity: O(1).
-   *
-   * @return TriangleIterator
-   */
-  edge2triangle_iterator edge2triangle_end(Edge e) const {
-    // let's get the inner vector for the smaller uid. Same logic in the iterator
-    size_type uid = i2u_nodes_[edge.node1().index()];
-    if(i2u_nodes_[edge.node1().index] < i2u_nodes_[edge.node2().index()])
-      uid = i2u_nodes_[edge.node2().index()];
-    
-    return edge2triangle_iterator( this, e, adj_list_n2t_[uid].size() );
-  }
 
 
 
  private:
+
+  GraphType g_nodes;
+  GraphType g_triangles;
 
   /** Stores all triangle objects, indexed by triangle idxs */
   std::vector<internal_triangle> internal_triangles_;
@@ -607,7 +240,6 @@ class Mesh : public Graph<V, E> {
   /** Keep track of the number of triangles */
   size_type num_triangles_ = 0;
 
-  friend class Graph<V,E>;
 };
 
 #endif
