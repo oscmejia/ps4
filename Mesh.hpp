@@ -37,21 +37,21 @@ class Mesh {
 
   /** Define types from Graph */
   typedef Graph<int,int> GraphType;
-  typedef typename GraphType::Node Node;
-  typedef typename GraphType::Edge Edge;
+  typedef typename GraphType::Node GNode;
+  typedef typename GraphType::Edge GEdge;
   
    
   /** @struct InternalTriangle */
   struct InternalTriangle
   {
-    size_type uid1;
-    size_type uid2;
-    size_type uid3;
-    idx_type idx;
+    idx_type node_idx1;
+    idx_type node_idx2;
+    idx_type node_idx3;
+    idx_type center_idx;
     triangle_value_type value;
 
-    InternalTriangle(size_type uid1, size_type uid2, size_type uid3, size_type idx, triangle_value_type value) 
-      : uid1(uid1), uid2(uid2), uid3(uid3), idx(idx), value(value) {
+    InternalTriangle(idx_type node_idx1, idx_type node_idx2, idx_type node_idx3, size_type center_idx, triangle_value_type value) 
+      : node_idx1(node_idx1), node_idx2(node_idx2), node_idx3(node_idx3), center_idx(center_idx), value(value) {
     }
   };
 
@@ -60,6 +60,20 @@ class Mesh {
 
   /** Inner vector of idxs for nodes to triangles */
   //typedef std::vector<idx_type> idx_list_type;
+
+
+  /** Mesh Node*/
+  class Node;
+  /** Type of Mesh Node*/
+  typedef Node node_type;
+  
+  /** Mesh Edge*/
+  class Edge;
+  /** Type of Mesh Edge*/
+  typedef Edge edge_type;
+
+
+
 
   ////////////////////////////////
   // CONSTRUCTOR AND DESTRUCTOR //
@@ -83,23 +97,43 @@ class Mesh {
    * Invalidates all outstanding Node, Edge and Triangle objects.
    */
   void clear() {
-    
+    g_nodes_.clear();
+    g_triangles_.clear();
+    // TODO: clear mesh data structures
   }
 
 
   /** Returns the number of triangles */
   size_type num_triangles() const {
-    return num_triangles_();
+    return g_triangles_.num_nodes();
+  }
+
+  /** Returns the number of nodes */
+  size_type num_nodes() const {
+    return g_nodes_.num_nodes();
   }
 
 
-  class TNode : private totally_ordered<TNode>  {
+  ////////////////////
+  // MESH NODES     //
+  ////////////////////
+  
+  class Node : public GNode<Node>  {
 
   };
 
-  class TEdges : private totally_ordered<TEdges>  {
+
+
+
+  ////////////////////
+  // MESH EDGES     //
+  ////////////////////
+  
+  class Edges : public GEdge<Edges>  {
 
   };
+
+
 
   ////////////////////
   // MESH TRIANGLES //
@@ -117,26 +151,26 @@ class Mesh {
 
       /** Return node 1 of this Triangle */
       Node node1() const {
-        return Node(m_, uid1_);
+        return node1_;
       }
 
       /** Return node 2 of this Triangle */
       Node node2() const {
-        return Node(m_, uid2_);
+        return node2_;
       }
 
       /** Return node 3 of this Triangle */
       Node node3() const {
-        return Node(m_, uid3_);
+        return node3_;
       }
 
 
 
       double area() const {
         // http://www.mathopenref.com/coordtrianglearea.html
-        Point a = internal_modes_[uid1_].point;
-        Point b = internal_modes_[uid2_].point;
-        Point c = internal_modes_[uid3_].point;
+        Point a = node1_.point;
+        Point b = node2_.point;
+        Point c = node3_.point;
         return std::abs( ( a.x*(b.y-c.y) + b.x*(c.y-a.y) + c.x*(a.y-b.y) ) / (2) );
       }
 
@@ -158,7 +192,8 @@ class Mesh {
        * and y, exactly one of x == y, x < y, and y < x is true.
        */
       bool operator<(const Triangle& x) const {
-        return std::tie(m_, node1_uid, node2_uid, node3_uid) < std::tie(x.m_, x.node1_uid, x.node2_uid, x.node3_uid);
+        // TODO: can we just compare idx ?
+        return std::tie(m_, node1_, node2_, node3_) < std::tie(x.m_, x.node1_, x.node2_, x.node3_);
       }
 
       double length () const {
@@ -172,7 +207,7 @@ class Mesh {
        * @return Object of type T by reference
        */
       triangle_value_type& value() {
-        //return  internal_triangles_[t_uid_].value;
+        return  m_->internal_triangles_[idx_].value;
       }
 
       /**
@@ -181,21 +216,21 @@ class Mesh {
        * @return Object of type T by reference as a constant.
        */
       const triangle_value_type& value() const {
-        //return  internal_triangles_[t_uid_].value;
+        return  m_->internal_triangles_[idx_].value;
       }
 
 
     private:
       
-      Triangle(Mesh* m, size_type t_uid, size_type uid1, size_type uid2, size_type uid3) 
-        : m_(const_cast<Mesh*>(m)), t_uid_(t_uid), uid1_(uid1), uid2_(uid2), uid3_(uid3) {
+      Triangle(Mesh* m, Node node1, Node node2, Node node3, idx_type idx) 
+        : m_(const_cast<Mesh*>(m)), node1_(node1), node2_(node1), node3_(node1), idx_(idx) {
       }
 
       Mesh* m_;
-      Node node1;
-      Node node2;
-      Node node3;
-      size_type t_uid_;
+      Node node1_;
+      Node node2_;
+      Node node3_;
+      idx_type idx_;
 
       friend class Mesh;
 
@@ -215,7 +250,15 @@ class Mesh {
    */
   Triangle add_triangle(const Point& a, const Point& b, const Point& c, const triangle_value_type& value = triangle_value_type()) {
     assert(a != b && b != c && a != c);
+    auto n1 = g_nodes_.add_node(a);
+    auto n2 = g_nodes_.add_node(b);
+    auto n3 = g_nodes_.add_node(c);
 
+    // TODO: add center node to g_triangles_
+    
+    internal_triangles_.push_back( InternalTriangle(n1.index(), n2.index(), n3.index(), 0, value) );
+
+    return Triangle();
   }
 
 
@@ -224,21 +267,17 @@ class Mesh {
 
  private:
 
-  GraphType g_nodes;
-  GraphType g_triangles;
+  /** Graph that holds nodes*/
+  GraphType g_nodes_;
+
+  /** Graph that holds nodes that represent the center of each triangle*/
+  GraphType g_triangles_;
 
   /** Stores all triangle objects, indexed by triangle idxs */
   std::vector<internal_triangle> internal_triangles_;
 
-  /** Stores references to valid triangle. Vector of vector of idxs,
-  indexed by node uids */
-  std::vector<idx_list_type> adj_list_n2t_;
-
-  /** Vector of adjacent triangles idxs */
-  std::vector<idx_type> i2u_triangles_;
-
-  /** Keep track of the number of triangles */
-  size_type num_triangles_ = 0;
+  
+  
 
 };
 
