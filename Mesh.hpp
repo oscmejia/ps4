@@ -116,6 +116,7 @@ class Mesh {
   }
 
   /** Accessing outward normal vectors of an edge of a triangle.*/
+  // TODO: validate signature
   std:vector<double> normals_vector(const Triangle& t, const& Edge e) {
 
   }
@@ -171,6 +172,17 @@ class Mesh {
         return node3_;
       }
 
+      Edge edge1() const {
+        return 
+      }
+
+      Edge edge2() const {
+        
+      }
+
+      Edge edge3() const {
+        
+      }
 
 
       double area() const {
