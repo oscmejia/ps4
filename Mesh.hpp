@@ -58,8 +58,10 @@ class Mesh {
   /** Type of InternalTriangle */
   typedef InternalTriangle internal_triangle;
 
-  /** Inner vector of idxs for nodes to triangles */
-  //typedef std::vector<idx_type> idx_list_type;
+  /** Type of triangle iterators, which iterate over all mesh triangles. */
+  class TriangleIterator;
+  /** Synonym for TriangleIterator */
+  typedef TriangleIterator triangle_iterator;
 
 
   /** Mesh Node*/
@@ -254,15 +256,109 @@ class Mesh {
     auto n2 = g_nodes_.add_node(b);
     auto n3 = g_nodes_.add_node(c);
 
-    // TODO: add center node to g_triangles_
+    // TODO: add center node to g_triangles_ and replace 0 in internal_triangles and Triangle constructor
     
     internal_triangles_.push_back( InternalTriangle(n1.index(), n2.index(), n3.index(), 0, value) );
 
-    return Triangle();
+    return Triangle(this, n1, n2, n3, 0);
   }
 
 
 
+  ///////////////
+  // Iterators //
+  ///////////////
+
+  /** @class Mesh::TriangleIterator
+   * @brief Iterator class for triangles. A forward iterator. */
+  class TriangleIterator : private totally_ordered<TriangleIterator> {
+
+   public:
+    // These type definitions help us use STL's iterator_traits.
+    /** Element type. */
+    typedef Triangle value_type;
+    /** Type of pointers to elements. */
+    typedef Triangle* pointer;
+    /** Type of references to elements. */
+    typedef Triangle& reference;
+    /** Iterator category. */
+    typedef std::input_iterator_tag iterator_category;
+    /** Difference between iterators */
+    typedef std::ptrdiff_t difference_type;
+
+    /** Construct an invalid TriangleIterator. */
+    TriangleIterator() {
+    }
+
+    /**
+     * Reference operator for TriangleIterator.
+     * Complexity: O(1).
+     *
+     * @Return Node object.
+     */
+    Triangle operator*() const {
+      // TODO: construct triangle
+      return Triangle();
+    }
+
+    /**
+     * Incremental Operator for TriangleIterator.
+     * Complexity: O(1).
+     *
+     * @Return TriangleIterator object by reference.
+     */
+    TriangleIterator& operator++() {
+      ++idx_;
+      return *this;
+    }
+
+    /**
+     * Equialy Operator for TriangleIterator.
+     * Complexity: O(1).
+     *
+     * @Return bool, true if both TriangleIterator's are equial.
+     */
+    bool operator==(const TriangleIterator& other) const {
+      return std::tie(m_, idx_) == std::tie(other.m_, other.idx_);
+    }
+
+   private:
+
+    TriangleIterator(const Mesh* m, idx_type idx)
+        : m_(const_cast<Mesh*>(m)), idx_(idx) {
+    }
+
+    /** Reference to the mesh */
+    Mesh* m_;
+    /** Triangle idx */
+    idx_type idx_;
+
+    friend class Mesh;
+  };
+
+  /**
+   * Return a node_iterator pointing to the begining
+   * Complexity: O(1).
+   *
+   * @return TriangleIterator
+   */
+  triangle_iterator triangle_begin() const {
+    return triangle_iterator( this, 0 );
+  }
+
+  /**
+   * Return a node_iterator pointing to one pass the last valid position.
+   * Complexity: O(1).
+   *
+   * @return TriangleIterator
+   */
+  triangle_iterator triangle_end() const {
+    return triangle_iterator( this, g_triangles_.size() );
+  }
+
+
+
+  
 
 
  private:
