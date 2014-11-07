@@ -96,34 +96,6 @@ class Mesh {
   ~Mesh() = default;
 
 
-  /////////////
-  // GENERAL //
-  /////////////
-
-  /** Remove all nodes, edges and triangles from this graph.
-   * @post num_nodes() == 0 && num_edges() == 0 && num_triangles() == 0
-   *
-   * Invalidates all outstanding Node, Edge and Triangle objects.
-   */
-  void clear() {
-    g_nodes_.clear();
-    g_triangles_.clear();
-    // TODO: clear mesh data structures
-  }
-
-
-  /** Returns the number of triangles */
-  size_type num_triangles() const {
-    return g_triangles_.num_nodes();
-  }
-
-  /** Returns the number of nodes */
-  size_type num_nodes() const {
-    return g_nodes_.num_nodes();
-  }
-
-
-
   ////////////////////
   // MESH NODES     //
   ////////////////////
@@ -288,6 +260,40 @@ class Mesh {
 
   };
 
+
+
+  /////////////
+  // GENERAL //
+  /////////////
+
+  /** Remove all nodes, edges and triangles from this graph.
+   * @post num_nodes() == 0 && num_edges() == 0 && num_triangles() == 0
+   *
+   * Invalidates all outstanding Node, Edge and Triangle objects.
+   */
+  void clear() {
+    g_nodes_.clear();
+    g_triangles_.clear();
+    // TODO: clear mesh data structures
+  }
+
+
+  /** Returns the number of triangles */
+  size_type num_triangles() const {
+    return g_triangles_.num_nodes();
+  }
+
+  /** Returns the number of nodes */
+  size_type num_nodes() const {
+    return g_nodes_.num_nodes();
+  }
+
+  /** Returns the number of edges */
+  size_type num_edges() const {
+    return g_nodes_.num_edges();
+  }
+
+
   /** Add an triangle to the graph, or return the current triangle if it already exists.
    * @pre @a a, @a b and @a c are distinct points that confirm a triangle
    * @return an Triangle object e with t.node1() == @a a, t.node2() == @a b and t.node3() == @a c
@@ -307,20 +313,26 @@ class Mesh {
     auto n2 = g_nodes_.add_node(b);
     auto n3 = g_nodes_.add_node(c);
 
-    // TODO: do we really need to add edges?
     g_nodes_.add_edge(a, b);
     g_nodes_.add_edge(b, c);
     g_nodes_.add_edge(a, c);
 
 
-    // TODO: add triangles to g_triangles. We need to find adjacent triangles first
-    // TODO: add center node to g_triangles_ 
+    // TODO: add triangles (internal_triangles) to g_triangles_. 
+    // TODO: Find adjacent triangles, then call g_triangles_.add_edge() for each adjacent triangle found.
     // TODO: replace 0 in internal_triangles and Triangle constructor
+    // TODO: Update edges with the adjacent triangle idxs
     
     internal_triangles_.push_back( InternalTriangle(n1.index(), n2.index(), n3.index(), 0, value) );
 
     return Triangle(this, n1, n2, n3, 0);
   }
+
+
+
+
+
+
 
 
 
@@ -413,6 +425,94 @@ class Mesh {
    */
   triangle_iterator triangle_end() const {
     return triangle_iterator( this, g_triangles_.size() );
+  }
+
+
+  /** @class Mesh::NodeIterator
+   * @brief Iterator class for Mesh::node. A forward iterator. */
+  class NodeIterator : private totally_ordered<NodeIterator> {
+
+   public:
+    // These type definitions help us use STL's iterator_traits.
+    /** Element type. */
+    typedef Node value_type;
+    /** Type of pointers to elements. */
+    typedef Node* pointer;
+    /** Type of references to elements. */
+    typedef Node& reference;
+    /** Iterator category. */
+    typedef std::input_iterator_tag iterator_category;
+    /** Difference between iterators */
+    typedef std::ptrdiff_t difference_type;
+
+    /** Construct an invalid TriangleIterator. */
+    NodeIterator() {
+    }
+
+    /**
+     * Reference operator for TriangleIterator.
+     * Complexity: O(1).
+     *
+     * @Return Node object.
+     */
+    Node operator*() const {
+      // TODO: construct node
+      return Node();
+    }
+
+    /**
+     * Incremental Operator for NodeIterator.
+     * Complexity: O(1).
+     *
+     * @Return NodeIterator object by reference.
+     */
+    NodeIterator& operator++() {
+      ++idx_;
+      return *this;
+    }
+
+    /**
+     * Equialy Operator for TriangleIterator.
+     * Complexity: O(1).
+     *
+     * @Return bool, true if both TriangleIterator's are equial.
+     */
+    bool operator==(const TriangleIterator& other) const {
+      //return std::tie(m_, idx_) == std::tie(other.m_, other.idx_);
+    }
+
+   private:
+
+   NodeIterator(const Mesh* m, idx_type idx)
+        : m_(const_cast<Mesh*>(m)), idx_(idx) {
+    }
+
+    /** Reference to the mesh */
+    Mesh* m_;
+    /** node idx */
+    idx_type idx_;
+
+    friend class Mesh;
+  };
+
+  /**
+   * Return a node_iterator pointing to the begining
+   * Complexity: O(1).
+   *
+   * @return NodeIterator
+   */
+  node_iterator node_begin() const {
+    return node_iterator( this, 0 );
+  }
+
+  /**
+   * Return a node_iterator pointing to one pass the last valid position.
+   * Complexity: O(1).
+   *
+   * @return TriangleIterator
+   */
+  node_iterator node_end() const {
+    return node_iterator( this, g_nodes_.num_nodes() );
   }
 
 
