@@ -116,7 +116,53 @@ class Mesh {
   ////////////////////
   
   class Node : public graph_node<Node>  {
+    public:
 
+      /** Test whether this edge and @a x are equal.
+       *
+       * Equal edges are from the same mesh and have the same graph_edge.
+       */
+      bool operator==(const Node& x) const {
+        return std::tie(gn_.uid_, m_) == std::tie(x.gn_.uid_, x.m_);
+      }
+
+      /** Test whether this node is less than @a x in the global order.
+       *
+       * This ordering function is useful for STL containers such as
+       * std::map<>. It need not have any geometric meaning.
+       *
+       * The node ordering relation must obey trichotomy: For any two nodes x
+       * and y, exactly one of x == y, x < y, and y < x is true.
+       */
+      bool operator<(const Node& x) const {
+        return std::tie(gn_.uid_, m_) < std::tie(x.gn_.uid_, x.m_);
+      }
+
+      /**
+       * Returns node_incident_iterator poiting to the first element.
+       * @return node_incident_iterator
+       */
+      node_incident_iterator triangle_begin() const {
+        return NodeIncidentIterator(m_, gn_.value(), 0);
+      }
+
+      /**
+       * Returns node_incident_iterator poiting to one elemnt past the last valid element.
+       * @return node_incident_iterator
+       */
+      node_incident_iterator triangle_end() const {
+        return NodeIncidentIterator(m_, gn_.value(), m_->adj_e2t_[gn_.value()].size() );
+      }
+
+    private:
+      Mesh m_;
+      graph_node gn_;
+
+      Node(const Mesh* m, graph_node ge) : m_(const_cast<Mesh*>(m)), gn_(gn) {
+        assert(m_ != nullptr);
+      }
+  
+  
   };
 
 
@@ -126,39 +172,53 @@ class Mesh {
   // MESH EDGES     //
   ////////////////////
   
-  class Edges : public graph_edge<Edges>  {
+  class Edges : private totally_ordered<Triangle>  {
     public:
 
+      /** Test whether this edge and @a x are equal.
+       *
+       * Equal edges are from the same mesh and have the same graph_edge.
+       */
+      bool operator==(const Edge& x) const {
+        return std::tie(m_, ge_.node1_uid, ge_.node2_uid) == std::tie(x.m_, x.ge_.node1_uid, x.ge_.node2_uid);
+      }
+
+      /** Test whether this edge is less than @a x in the global order.
+       *
+       * This ordering function is useful for STL containers such as
+       * std::map<>. It need not have any geometric meaning.
+       *
+       * The edge ordering relation must obey trichotomy: For any two edges x
+       * and y, exactly one of x == y, x < y, and y < x is true.
+       */
+      bool operator<(const Edge& x) const {
+        return std::tie(m_, ge_.node1_uid, ge_.node2_uid) < std::tie(x.m_, x.ge_.node1_uid, x.ge_.node2_uid);
+      }
+
       /**
-       * Returns incident_iterator poiting to the first element.
-       * @return incident_iterator
+       * Returns edge_incident_iterator poiting to the first element.
+       * @return edge_incident_iterator
        */
       edge_incident_iterator triangle_begin() const {
-        return EdgeIncidentIterator(g_, uid_, 0);
+        return EdgeIncidentIterator(m_, ge_.value(), 0);
       }
 
       /**
-       * Returns incident_iterator poiting to one elemnt past the last valid element.
-       * @return incident_iterator
+       * Returns edge_incident_iterator poiting to one elemnt past the last valid element.
+       * @return edge_incident_iterator
        */
       edge_incident_iterator triangle_end() const {
-        return EdgeIncidentIterator();
-      }
-
-
-      void add_adj_triangle(idx_type idx) {
-
+        return EdgeIncidentIterator(m_, ge_.value(), m_->adj_e2t_[ge_.value()].size() );
       }
 
     private:
       Mesh m_;
+      graph_edge ge_;
 
-      Edge(const Mesh* m, size_type uid) : m_(const_cast<Mesh*>(m)), uid_(uid) {
+      Edge(const Mesh* m, graph_edge ge) : m_(const_cast<Mesh*>(m)), ge_(ge) {
         assert(m_ != nullptr);
       }
-
-
-      std::vector<idx_type> adj_triangles_
+  
   };
 
 
@@ -324,23 +384,26 @@ class Mesh {
   Triangle add_triangle(const Point& a, const Point& b, const Point& c, 
     const triangle_value_type& value = triangle_value_type()) {
     assert(a != b && b != c && a != c);
+
     auto n1 = g_nodes_.add_node(a);
     auto n2 = g_nodes_.add_node(b);
     auto n3 = g_nodes_.add_node(c);
 
-    g_nodes_.add_edge(a, b);
-    g_nodes_.add_edge(b, c);
-    g_nodes_.add_edge(a, c);
-
-
-    // TODO: add triangles (internal_triangles) to g_triangles_. 
-    // TODO: Find adjacent triangles, then call g_triangles_.add_edge() for each adjacent triangle found.
-    // TODO: replace 0 in internal_triangles and Triangle constructor
-    // TODO: Update edges with the adjacent triangle idxs
+    // The value stored in edge is the edge idx in adj_e2t.
+    // we need it since we don't have dirrect access to edge's idxs
+    // This is what we will use for iterating over triangles adjacent to an edge
+    g_nodes_.add_edge(a, b, g_nodes_.num_edges());
+    g_nodes_.add_edge(b, c, g_nodes_.num_edges());
+    g_nodes_.add_edge(a, c, g_nodes_.num_edges());
     
+    // TODO: replace 0 in internal_triangles and Triangle constructor
     internal_triangles_.push_back( InternalTriangle(n1.index(), n2.index(), n3.index(), 0, value) );
 
-    return Triangle(this, n1, n2, n3, 0);
+    // TODO: Find adjacent triangles to this triangle, then call g_triangles_.add_edge() for each adjacent triangle found.
+    // TODO: Add idxs of triangles adjacent to the edges of this triangle to adj_e2t_
+    // TODO: Add idxs of triangles adjacent to the nodes of this triangle to adj_n2t_
+    // 
+    return Triangle(this, n1, n2, n3, internal_triangles_.size()-1);
   }
 
 
@@ -641,8 +704,11 @@ class Mesh {
   /** Stores all triangle objects, indexed by triangle idxs */
   std::vector<internal_triangle> internal_triangles_;
 
+  /** Stores idxs of adjacent triangles to edges */
+  std::vector< std::vector<idx_type> > adj_e2t_
   
-  
+  /** Stores idxs of adjacent triangles to nodes */
+  std::vector< std::vector<idx_type> > adj_n2t_
 
 };
 
