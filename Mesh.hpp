@@ -42,17 +42,19 @@ class Mesh {
   
    
   /** @struct InternalTriangle */
-  struct InternalTriangle
+  struc InternalTriangle
   {
     idx_type node_idx1;
     idx_type node_idx2;
     idx_type node_idx3;
     idx_type center_idx;
     triangle_value_type value;
+    
 
     InternalTriangle(idx_type node_idx1, idx_type node_idx2, idx_type node_idx3, size_type center_idx, triangle_value_type value) 
       : node_idx1(node_idx1), node_idx2(node_idx2), node_idx3(node_idx3), center_idx(center_idx), value(value) {
     }
+
   };
 
   /** Type of InternalTriangle */
@@ -69,12 +71,17 @@ class Mesh {
   /** Type of Mesh Node*/
   typedef Node node_type;
   
+
   /** Mesh Edge*/
   class Edge;
   /** Type of Mesh Edge*/
   typedef Edge edge_type;
 
 
+  /** Type of incident iterators, which iterate incident triangles to an edge. */
+  class IncidentIterator;
+  /** Synonym for IncidentIterator */
+  typedef IncidentIterator incident_iterator;
 
 
   ////////////////////////////////
@@ -138,7 +145,38 @@ class Mesh {
   ////////////////////
   
   class Edges : public GEdge<Edges>  {
+    public:
 
+      /**
+       * Returns incident_iterator poiting to the first element.
+       * @return incident_iterator
+       */
+      incident_iterator triangle_begin() const {
+        return IncidentIterator(g_, uid_, 0);
+      }
+
+      /**
+       * Returns incident_iterator poiting to one elemnt past the last valid element.
+       * @return incident_iterator
+       */
+      incident_iterator triangle_end() const {
+        return IncidentIterator(g_, uid_, g_->i2u_edges_[index()].size());
+      }
+
+
+      void add adj_triangle(idx_type idx) {
+
+      }
+
+    private:
+      Mesh m_;
+
+      Edge(const Mesh* m, size_type uid) : m_(const_cast<Mesh*>(m)), uid_(uid) {
+        assert(m_ != nullptr);
+      }
+
+
+      std::vector<idx_type> adj_triangles_
   };
 
 
@@ -273,7 +311,15 @@ class Mesh {
     auto n2 = g_nodes_.add_node(b);
     auto n3 = g_nodes_.add_node(c);
 
-    // TODO: add center node to g_triangles_ and replace 0 in internal_triangles and Triangle constructor
+    // TODO: do we really need to add edges?
+    g_nodes_.add_edge(a, b);
+    g_nodes_.add_edge(b, c);
+    g_nodes_.add_edge(a, c);
+
+
+    // TODO: add triangles to g_triangles. We need to find adjacent triangles first
+    // TODO: add center node to g_triangles_ 
+    // TODO: replace 0 in internal_triangles and Triangle constructor
     
     internal_triangles_.push_back( InternalTriangle(n1.index(), n2.index(), n3.index(), 0, value) );
 
