@@ -37,8 +37,11 @@ class Mesh {
 
   /** Define types from Graph */
   typedef Graph<int,int> GraphType;
-  typedef typename GraphType::Node GNode;
-  typedef typename GraphType::Edge GEdge;
+  typedef typename GraphType::Node graph_node;
+  typedef typename GraphType::Edge graph_edge;
+  typedef typename GraphType::NodeIterator graph_node_iterator;
+  typedef typename GraphType::EdgeIterator graph_edge_iterator;
+
   
    
   /** @struct InternalTriangle */
@@ -64,6 +67,18 @@ class Mesh {
   class TriangleIterator;
   /** Synonym for TriangleIterator */
   typedef TriangleIterator triangle_iterator;
+
+
+  /** Type of node iterators, which iterate over all mesh nodes. */
+  class NodeIterator;
+  /** Synonym for NodeIterator */
+  typedef NodeIterator node_iterator;
+
+
+  /** Type of edge iterators, which iterate over all mesh edges. */
+  class EdgeIterator;
+  /** Synonym for NodeIterator */
+  typedef EdgeIterator edge_iterator;
 
 
   /** Mesh Node*/
@@ -100,7 +115,7 @@ class Mesh {
   // MESH NODES     //
   ////////////////////
   
-  class Node : public GNode<Node>  {
+  class Node : public graph_node<Node>  {
 
   };
 
@@ -111,7 +126,7 @@ class Mesh {
   // MESH EDGES     //
   ////////////////////
   
-  class Edges : public GEdge<Edges>  {
+  class Edges : public graph_edge<Edges>  {
     public:
 
       /**
@@ -408,7 +423,7 @@ class Mesh {
   };
 
   /**
-   * Return a node_iterator pointing to the begining
+   * Return a triangle_iterator pointing to the begining
    * Complexity: O(1).
    *
    * @return TriangleIterator
@@ -418,7 +433,7 @@ class Mesh {
   }
 
   /**
-   * Return a node_iterator pointing to one pass the last valid position.
+   * Return a triangle_iterator pointing to one pass the last valid position.
    * Complexity: O(1).
    *
    * @return TriangleIterator
@@ -428,8 +443,11 @@ class Mesh {
   }
 
 
+
+
+
   /** @class Mesh::NodeIterator
-   * @brief Iterator class for Mesh::node. A forward iterator. */
+   * @brief Iterator class for Mesh::Node. A forward iterator. */
   class NodeIterator : private totally_ordered<NodeIterator> {
 
    public:
@@ -467,7 +485,7 @@ class Mesh {
      * @Return NodeIterator object by reference.
      */
     NodeIterator& operator++() {
-      ++idx_;
+      ++it_;
       return *this;
     }
 
@@ -477,20 +495,20 @@ class Mesh {
      *
      * @Return bool, true if both TriangleIterator's are equial.
      */
-    bool operator==(const TriangleIterator& other) const {
-      //return std::tie(m_, idx_) == std::tie(other.m_, other.idx_);
+    bool operator==(const NodeIterator& other) const {
+      return std::tie(m_, it_) == std::tie(other.m_, other.it_);
     }
 
    private:
 
-   NodeIterator(const Mesh* m, idx_type idx)
-        : m_(const_cast<Mesh*>(m)), idx_(idx) {
+   NodeIterator(const Mesh* m, graph_node_iterator it)
+        : m_(const_cast<Mesh*>(m)), it_(it) {
     }
 
     /** Reference to the mesh */
     Mesh* m_;
-    /** node idx */
-    idx_type idx_;
+    /** Graph::NodeIterator */
+    graph_node_iterator it_;
 
     friend class Mesh;
   };
@@ -502,17 +520,109 @@ class Mesh {
    * @return NodeIterator
    */
   node_iterator node_begin() const {
-    return node_iterator( this, 0 );
+    return node_iterator( this, g_nodes_.node_begin() );
   }
 
   /**
    * Return a node_iterator pointing to one pass the last valid position.
    * Complexity: O(1).
    *
-   * @return TriangleIterator
+   * @return NodeIterator
    */
   node_iterator node_end() const {
-    return node_iterator( this, g_nodes_.num_nodes() );
+    return node_iterator( this, g_nodes_.node_end() );
+  }
+
+
+
+
+
+
+  /** @class Mesh::EdgeIterator
+   * @brief Iterator class for Mesh::Edge. A forward iterator. */
+  class EdgeIterator : private totally_ordered<EdgeIterator> {
+
+   public:
+    // These type definitions help us use STL's iterator_traits.
+    /** Element type. */
+    typedef Edge value_type;
+    /** Type of pointers to elements. */
+    typedef Edge* pointer;
+    /** Type of references to elements. */
+    typedef Edge& reference;
+    /** Iterator category. */
+    typedef std::input_iterator_tag iterator_category;
+    /** Difference between iterators */
+    typedef std::ptrdiff_t difference_type;
+
+    /** Construct an invalid TriangleIterator. */
+    EdgeIterator() {
+    }
+
+    /**
+     * Reference operator for TriangleIterator.
+     * Complexity: O(1).
+     *
+     * @Return Edge object.
+     */
+    Edge operator*() const {
+      // TODO: construct edge
+      return Edge();
+    }
+
+    /**
+     * Incremental Operator for EdgeIterator.
+     * Complexity: O(1).
+     *
+     * @Return EdgeIterator object by reference.
+     */
+    EdgeIterator& operator++() {
+      ++it_;
+      return *this;
+    }
+
+    /**
+     * Equialy Operator for EdgeIterator.
+     * Complexity: O(1).
+     *
+     * @Return bool, true if both TriangleIterator's are equial.
+     */
+    bool operator==(const EdgeIterator& other) const {
+      return std::tie(m_, it_) == std::tie(other.m_, other.it_);
+    }
+
+   private:
+
+   EdgeIterator(const Mesh* m, graph_edge_iterator it)
+        : m_(const_cast<Mesh*>(m)), it_(it) {
+    }
+
+    /** Reference to the mesh */
+    Mesh* m_;
+    /** Graph::EdgeIterator */
+    graph_edge_iterator it_;
+
+    friend class Mesh;
+  };
+
+  /**
+   * Return a edge_iterator pointing to the begining
+   * Complexity: O(1).
+   *
+   * @return NodeIterator
+   */
+  edge_iterator edge_begin() const {
+    return edge_iterator( this, g_nodes_.edge_begin() );
+  }
+
+  /**
+   * Return a edge_iterator pointing to one pass the last valid position.
+   * Complexity: O(1).
+   *
+   * @return TriangleIterator
+   */
+  edge_iterator edge_end() const {
+    return edge_iterator( this, g_nodes_.edge_end() );
   }
 
 
