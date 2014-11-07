@@ -79,9 +79,9 @@ class Mesh {
 
 
   /** Type of incident iterators, which iterate incident triangles to an edge. */
-  class IncidentIterator;
+  class EdgeIncidentIterator;
   /** Synonym for IncidentIterator */
-  typedef IncidentIterator incident_iterator;
+  typedef EdgeIncidentIterator edge_incident_iterator;
 
 
   ////////////////////////////////
@@ -122,11 +122,6 @@ class Mesh {
     return g_nodes_.num_nodes();
   }
 
-  /** Accessing outward normal vectors of an edge of a triangle.*/
-  // TODO: validate signature
-  std:vector<double> normals_vector(const Triangle& t, const& Edge e) {
-
-  }
 
 
   ////////////////////
@@ -151,20 +146,20 @@ class Mesh {
        * Returns incident_iterator poiting to the first element.
        * @return incident_iterator
        */
-      incident_iterator triangle_begin() const {
-        return IncidentIterator(g_, uid_, 0);
+      edge_incident_iterator triangle_begin() const {
+        return EdgeIncidentIterator(g_, uid_, 0);
       }
 
       /**
        * Returns incident_iterator poiting to one elemnt past the last valid element.
        * @return incident_iterator
        */
-      incident_iterator triangle_end() const {
-        return IncidentIterator(g_, uid_, g_->i2u_edges_[index()].size());
+      edge_incident_iterator triangle_end() const {
+        return EdgeIncidentIterator();
       }
 
 
-      void add adj_triangle(idx_type idx) {
+      void add_adj_triangle(idx_type idx) {
 
       }
 
@@ -211,17 +206,22 @@ class Mesh {
       }
 
       Edge edge1() const {
-        return 
+        return m_->g_nodes_.has_edge(node1_, node2_);
       }
 
       Edge edge2() const {
-        
+        return m_->g_nodes_.has_edge(node2_, node3_);
       }
 
       Edge edge3() const {
-        
+        return m_->g_nodes_.has_edge(node1_, node3_);
       }
 
+      /** Accessing outward normal vectors of an edge of a triangle.*/
+      // TODO: validate signature
+      std:vector<double> normals_vector(const& Edge e) {
+
+      }
 
       double area() const {
         // http://www.mathopenref.com/coordtrianglearea.html
@@ -251,11 +251,6 @@ class Mesh {
       bool operator<(const Triangle& x) const {
         // TODO: can we just compare idx ?
         return std::tie(m_, node1_, node2_, node3_) < std::tie(x.m_, x.node1_, x.node2_, x.node3_);
-      }
-
-      double length () const {
-        // TODO
-        //return norm(node1().position() - node2().position());
       }
 
       /**
@@ -305,7 +300,8 @@ class Mesh {
    *
    * Complexity: No more than O(num_nodes() + num_edges()), hopefully less
    */
-  Triangle add_triangle(const Point& a, const Point& b, const Point& c, const triangle_value_type& value = triangle_value_type()) {
+  Triangle add_triangle(const Point& a, const Point& b, const Point& c, 
+    const triangle_value_type& value = triangle_value_type()) {
     assert(a != b && b != c && a != c);
     auto n1 = g_nodes_.add_node(a);
     auto n2 = g_nodes_.add_node(b);
