@@ -115,7 +115,7 @@ class Mesh {
   // MESH NODES     //
   ////////////////////
   
-  class Node : public graph_node<Node>  {
+  class Node : public totally_ordered<Node>  {
     public:
 
       /** Test whether this edge and @a x are equal.
@@ -155,14 +155,12 @@ class Mesh {
       }
 
     private:
-      Mesh m_;
+      Mesh* m_;
       graph_node gn_;
 
       Node(const Mesh* m, graph_node ge) : m_(const_cast<Mesh*>(m)), gn_(gn) {
         assert(m_ != nullptr);
       }
-  
-  
   };
 
 
@@ -172,7 +170,7 @@ class Mesh {
   // MESH EDGES     //
   ////////////////////
   
-  class Edges : private totally_ordered<Triangle>  {
+  class Edges : public totally_ordered<Edge>  {
     public:
 
       /** Test whether this edge and @a x are equal.
@@ -212,13 +210,12 @@ class Mesh {
       }
 
     private:
-      Mesh m_;
+      Mesh* m_;
       graph_edge ge_;
 
       Edge(const Mesh* m, graph_edge ge) : m_(const_cast<Mesh*>(m)), ge_(ge) {
         assert(m_ != nullptr);
       }
-  
   };
 
 
@@ -316,6 +313,23 @@ class Mesh {
        */
       const triangle_value_type& value() const {
         return  m_->internal_triangles_[idx_].value;
+      }
+
+
+      /**
+       * Returns triangle_incident_iterator poiting to the first element.
+       * @return triangle_incident_iterator
+       */
+      triangle_incident_iterator triangle_begin() const {
+        //return TriangleIncidentIterator(m_, ge_.value(), 0);
+      }
+
+      /**
+       * Returns triangle_incident_iterator poiting to one elemnt past the last valid element.
+       * @return triangle_incident_iterator
+       */
+      triangle_incident_iterator triangle_end() const {
+        //return TriangleIncidentIterator(m_, ge_.value(), m_->adj_e2t_[ge_.value()].size() );
       }
 
 
