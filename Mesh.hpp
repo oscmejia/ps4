@@ -197,20 +197,13 @@ class Mesh {
         return std::tie(m_, ge_.node1_uid, ge_.node2_uid) < std::tie(x.m_, x.ge_.node1_uid, x.ge_.node2_uid);
       }
 
-      /**
-       * Returns edge_incident_iterator poiting to the first element.
-       * @return edge_incident_iterator
-       */
-      edge_incident_iterator triangle_begin() const {
-        return EdgeIncidentIterator(m_, ge_.value(), 0);
+      Triangle_type triangle(idx_type i) {
+        assert(i < num_adj_triangles());
+        // TODO: implement
       }
 
-      /**
-       * Returns edge_incident_iterator poiting to one elemnt past the last valid element.
-       * @return edge_incident_iterator
-       */
-      edge_incident_iterator triangle_end() const {
-        //return EdgeIncidentIterator(m_, ge_.value(), m_->adj_e2t_[ge_.value()].size() );
+      size_type num_adj_triangles() {
+        // TODO: implement
       }
 
     private:
@@ -382,6 +375,10 @@ class Mesh {
     return g_nodes_.num_edges();
   }
 
+  /** Stores a graph node and returns a mesh node */
+  Node add_node(const Point& position){
+    return Node(this, g_nodes_.add_node(position));
+  }
 
   /** Add an triangle to the graph, or return the current triangle if it already exists.
    * @pre @a a, @a b and @a c are distinct points that confirm a triangle
@@ -395,13 +392,13 @@ class Mesh {
    *
    * Complexity: No more than O(num_nodes() + num_edges()), hopefully less
    */
-  Triangle add_triangle(const Point& a, const Point& b, const Point& c, 
+  Triangle add_triangle(const Node& a, const Node& b, const Node& c, 
     const triangle_value_type& value = triangle_value_type()) {
+    
     assert(a != b && b != c && a != c);
-
-    auto n1 = g_nodes_.add_node(a);
-    auto n2 = g_nodes_.add_node(b);
-    auto n3 = g_nodes_.add_node(c);
+    assert( g_nodes_.has_node(a) );
+    assert( g_nodes_.has_node(b) );
+    assert( g_nodes_.has_node(c) );
 
     // The value stored in edge is the edge idx in adj_e2t.
     // we need it since we don't have dirrect access to edge's idxs
