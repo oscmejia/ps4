@@ -54,12 +54,12 @@ class Mesh {
     idx_type node_idx1;
     idx_type node_idx2;
     idx_type node_idx3;
-    idx_type center_idx;
+    //idx_type center_idx;
     triangle_value_type value;
     
 
-    InternalTriangle(idx_type node_idx1, idx_type node_idx2, idx_type node_idx3, size_type center_idx, triangle_value_type value) 
-      : node_idx1(node_idx1), node_idx2(node_idx2), node_idx3(node_idx3), center_idx(center_idx), value(value) {
+    InternalTriangle(idx_type node_idx1, idx_type node_idx2, idx_type node_idx3, triangle_value_type value) 
+      : node_idx1(node_idx1), node_idx2(node_idx2), node_idx3(node_idx3), value(value) {
     }
 
   };
@@ -84,6 +84,11 @@ class Mesh {
   /** Synonym for NodeIterator */
   typedef EdgeIterator edge_iterator;
 
+
+  /** Mesh Triangle*/
+  class Triangle;
+  /** Type of Mesh Triangle*/
+  typedef Triangle triangle_type;
 
   /** Mesh Node*/
   class Node;
@@ -197,7 +202,7 @@ class Mesh {
         return std::tie(m_, ge_.node1_uid, ge_.node2_uid) < std::tie(x.m_, x.ge_.node1_uid, x.ge_.node2_uid);
       }
 
-      Triangle_type triangle(idx_type i) {
+      triangle_type triangle(idx_type i) {
         assert(i < num_adj_triangles());
         // TODO: implement
       }
@@ -294,7 +299,7 @@ class Mesh {
        * @return Object of type T by reference
        */
       triangle_value_type& value() {
-        return  m_->internal_triangles_[idx_].value;
+        return m_->g_triangles_[idx_].value;
       }
 
       /**
@@ -303,7 +308,7 @@ class Mesh {
        * @return Object of type T by reference as a constant.
        */
       const triangle_value_type& value() const {
-        return  m_->internal_triangles_[idx_].value;
+        return m_->g_triangles_[idx_].value;
       }
 
 
@@ -407,14 +412,14 @@ class Mesh {
     g_nodes_.add_edge(b, c, g_nodes_.num_edges());
     g_nodes_.add_edge(a, c, g_nodes_.num_edges());
     
-    // TODO: replace 0 in internal_triangles and Triangle constructor
-    internal_triangles_.push_back( InternalTriangle(n1.index(), n2.index(), n3.index(), 0, value) );
+    // TODO: we are storing an empty/invalid Point. other options?
+    g_triangles_.add_node( Point(), InternalTriangle(a.index(), b.index(), c.index(), value));
 
     // TODO: Find adjacent triangles to this triangle, then call g_triangles_.add_edge() for each adjacent triangle found.
-    // TODO: Add idxs of triangles adjacent to the edges of this triangle to adj_e2t_
-    // TODO: Add idxs of triangles adjacent to the nodes of this triangle to adj_n2t_
-    // 
-    return Triangle(this, n1, n2, n3, internal_triangles_.size()-1);
+    // TODO: Add idxs of triangles adjacent to the edges of this triangle 
+    // TODO: Add idxs of triangles adjacent to the nodes of this triangle
+    
+    return Triangle(this, a, b, c, g_triangles_.num_nodes()-1);
   };
 
 
@@ -711,9 +716,6 @@ class Mesh {
 
   /** Graph that holds nodes that represent the center of each triangle*/
   GraphType g_triangles_;
-
-  /** Stores all triangle objects, indexed by triangle idxs */
-  std::vector<internal_triangle> internal_triangles_;
 
   /** Stores idxs of adjacent triangles to edges */
   std::vector< std::vector<idx_type> > adj_e2t_;
