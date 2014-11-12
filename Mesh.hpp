@@ -238,48 +238,38 @@ class Mesh {
    */
   class Triangle : private totally_ordered<Triangle>  {
     public:
-      /** Construct an invalid Edge. */
+
+      /** Construct an invalid Triangle. */
       Triangle() {
       }
 
-      /** Return node 1 of this Triangle */
-      Node node1() const {
-        return node1_;
+      /** Return node at position i in this Triangle */
+      Node node(idx_type i) const {
+        assert(i >= 0 && i < 3);
+        return nodes_[i];
       }
 
-      /** Return node 2 of this Triangle */
-      Node node2() const {
-        return node2_;
-      }
 
-      /** Return node 3 of this Triangle */
-      Node node3() const {
-        return node3_;
-      }
+      Edge edge1(idx_type i) const {
+        assert(i >= 0 && i < 3);
 
-      Edge edge1() const {
-        return m_->g_nodes_.has_edge(node1_, node2_);
-      }
+        // TODO: is there a better way than has_edge() ??
+        if(i == 2)
+          return m_->g_nodes_.has_edge(nodes_[0], nodes_[i]);
 
-      Edge edge2() const {
-        return m_->g_nodes_.has_edge(node2_, node3_);
-      }
-
-      Edge edge3() const {
-        return m_->g_nodes_.has_edge(node1_, node3_);
+        return m_->g_nodes_.has_edge(nodes_[i], nodes_[i+1]);
       }
 
       /** Accessing outward normal vectors of an edge of a triangle.*/
-      // TODO: validate signature
       Point normals_vector(const Edge& e) {
-
+        // TODO: write implementation
       }
 
       double area() const {
         // http://www.mathopenref.com/coordtrianglearea.html
-        Point a = node1_.point;
-        Point b = node2_.point;
-        Point c = node3_.point;
+        Point a = nodes_[0].point;
+        Point b = nodes_[1].point;
+        Point c = nodes_[2].point;
         return std::abs( ( a.x*(b.y-c.y) + b.x*(c.y-a.y) + c.x*(a.y-b.y) ) / (2) );
       }
 
@@ -289,7 +279,7 @@ class Mesh {
        * Equal triangles are from the same mesh and have the same nodes and edges.
        */
       bool operator==(const Triangle& x) const {
-        return std::tie(m_, node1_, node2_, node3_) == std::tie(x.m_, x.node1_, x.node2_, x.node3_);
+        return std::tie(m_, nodes_[0], nodes_[1], nodes_[2]) == std::tie(x.m_, x.node(0), x.node(1), x.node(2));
       }
 
       /** Test whether this triangle is less than @a x in the global order.
@@ -301,8 +291,8 @@ class Mesh {
        * and y, exactly one of x == y, x < y, and y < x is true.
        */
       bool operator<(const Triangle& x) const {
-        // TODO: can we just compare idx ?
-        return std::tie(m_, node1_, node2_, node3_) < std::tie(x.m_, x.node1_, x.node2_, x.node3_);
+        // TODO: can we just compare triangle idx ?
+        return std::tie(m_, nodes_[0], nodes_[1], nodes_[2]) < std::tie(x.m_, x.node(0), x.node(1), x.node(2));
       }
 
       /**
@@ -344,13 +334,15 @@ class Mesh {
     private:
       
       Triangle(Mesh* m, Node node1, Node node2, Node node3, idx_type idx) 
-        : m_(const_cast<Mesh*>(m)), node1_(node1), node2_(node1), node3_(node1), idx_(idx) {
+        : m_(const_cast<Mesh*>(m)), idx_(idx) {
+        
+        nodes_.push_back(node1);
+        nodes_.push_back(node2);
+        nodes_.push_back(node3);
       }
 
       Mesh* m_;
-      Node node1_;
-      Node node2_;
-      Node node3_;
+      std::vector<Node> nodes_;
       idx_type idx_;
 
       friend class Mesh;
