@@ -35,6 +35,7 @@ class Mesh {
   /** Type value for idexes */
   typedef unsigned idx_type;
 
+
   /** Define types from Graph */
   typedef Graph<int,int> GraphType;
   typedef typename GraphType::Node graph_node;
@@ -42,10 +43,13 @@ class Mesh {
   typedef typename GraphType::NodeIterator graph_node_iterator;
   typedef typename GraphType::EdgeIterator graph_edge_iterator;
 
+  class NodeIncidentIterator;
+  typedef NodeIncidentIterator node_incident_iterator;
+
   
    
   /** @struct InternalTriangle */
-  struc InternalTriangle
+  struct InternalTriangle
   {
     idx_type node_idx1;
     idx_type node_idx2;
@@ -158,7 +162,7 @@ class Mesh {
       Mesh* m_;
       graph_node gn_;
 
-      Node(const Mesh* m, graph_node ge) : m_(const_cast<Mesh*>(m)), gn_(gn) {
+      Node(const Mesh* m, graph_node gn) : m_(const_cast<Mesh*>(m)), gn_(gn) {
         assert(m_ != nullptr);
       }
   };
@@ -170,7 +174,7 @@ class Mesh {
   // MESH EDGES     //
   ////////////////////
   
-  class Edges : public totally_ordered<Edge>  {
+  class Edge : public totally_ordered<Edge>  {
     public:
 
       /** Test whether this edge and @a x are equal.
@@ -206,14 +210,18 @@ class Mesh {
        * @return edge_incident_iterator
        */
       edge_incident_iterator triangle_end() const {
-        return EdgeIncidentIterator(m_, ge_.value(), m_->adj_e2t_[ge_.value()].size() );
+        //return EdgeIncidentIterator(m_, ge_.value(), m_->adj_e2t_[ge_.value()].size() );
       }
 
     private:
+
       Mesh* m_;
+
       graph_edge ge_;
 
-      Edge(const Mesh* m, graph_edge ge) : m_(const_cast<Mesh*>(m)), ge_(ge) {
+      Edge(const Mesh* m, graph_edge ge) 
+        : m_(const_cast<Mesh*>(m)), ge_(ge) {
+
         assert(m_ != nullptr);
       }
   };
@@ -263,7 +271,7 @@ class Mesh {
 
       /** Accessing outward normal vectors of an edge of a triangle.*/
       // TODO: validate signature
-      std:vector<double> normals_vector(const& Edge e) {
+      Point normals_vector(const Edge& e) {
 
       }
 
@@ -281,7 +289,7 @@ class Mesh {
        * Equal triangles are from the same mesh and have the same nodes and edges.
        */
       bool operator==(const Triangle& x) const {
-        return std::tie(m_, uid1_, uid2_, uid3_) == std::tie(x.m_, x.uid1_, x.uid2_, x.uid3_);
+        return std::tie(m_, node1_, node2_, node3_) == std::tie(x.m_, x.node1_, x.node2_, x.node3_);
       }
 
       /** Test whether this triangle is less than @a x in the global order.
@@ -320,17 +328,17 @@ class Mesh {
        * Returns triangle_incident_iterator poiting to the first element.
        * @return triangle_incident_iterator
        */
-      triangle_incident_iterator triangle_begin() const {
+      //triangle_incident_iterator triangle_begin() const {
         //return TriangleIncidentIterator(m_, ge_.value(), 0);
-      }
+      //}
 
       /**
        * Returns triangle_incident_iterator poiting to one elemnt past the last valid element.
        * @return triangle_incident_iterator
        */
-      triangle_incident_iterator triangle_end() const {
+      //triangle_incident_iterator triangle_end() const {
         //return TriangleIncidentIterator(m_, ge_.value(), m_->adj_e2t_[ge_.value()].size() );
-      }
+      //}
 
 
     private:
@@ -418,7 +426,7 @@ class Mesh {
     // TODO: Add idxs of triangles adjacent to the nodes of this triangle to adj_n2t_
     // 
     return Triangle(this, n1, n2, n3, internal_triangles_.size()-1);
-  }
+  };
 
 
 
@@ -719,10 +727,10 @@ class Mesh {
   std::vector<internal_triangle> internal_triangles_;
 
   /** Stores idxs of adjacent triangles to edges */
-  std::vector< std::vector<idx_type> > adj_e2t_
+  std::vector< std::vector<idx_type> > adj_e2t_;
   
   /** Stores idxs of adjacent triangles to nodes */
-  std::vector< std::vector<idx_type> > adj_n2t_
+  std::vector< std::vector<idx_type> > adj_n2t_;
 
 };
 
