@@ -341,21 +341,23 @@ class Mesh {
       }
 
 
-      /**
-       * Returns triangle_incident_iterator poiting to the first element.
-       * @return triangle_incident_iterator
-       */
-      //triangle_incident_iterator triangle_begin() const {
-        //return TriangleIncidentIterator(m_, ge_.value(), 0);
-      //}
 
       /**
-       * Returns triangle_incident_iterator poiting to one elemnt past the last valid element.
-       * @return triangle_incident_iterator
+       * Returns a Triangle adjacent to the edge idx provided.
+       * @return triangle_type
        */
-      //triangle_incident_iterator triangle_end() const {
-        //return TriangleIncidentIterator(m_, ge_.value(), m_->adj_e2t_[ge_.value()].size() );
-      //}
+      triangle_type triangle(idx_type edge_idx) const {
+        // TODO: implement
+      }
+
+
+      /**
+       * Returns a Triangle adjacent to the edge provided.
+       * @return triangle_type
+       */
+      triangle_type triangle(edge_type edge) const {
+        // TODO: implement
+      }
 
 
     private:
