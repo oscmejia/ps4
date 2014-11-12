@@ -36,18 +36,7 @@ class Mesh {
   typedef unsigned idx_type;
 
 
-  /** Define types from Graph */
-  typedef Graph<int,int> GraphType;
-  typedef typename GraphType::Node graph_node;
-  typedef typename GraphType::Edge graph_edge;
-  typedef typename GraphType::NodeIterator graph_node_iterator;
-  typedef typename GraphType::EdgeIterator graph_edge_iterator;
 
-  class NodeIncidentIterator;
-  typedef NodeIncidentIterator node_incident_iterator;
-
-  
-   
   /** @struct InternalTriangle */
   struct InternalTriangle
   {
@@ -63,9 +52,49 @@ class Mesh {
     }
 
   };
-
   /** Type of InternalTriangle */
   typedef InternalTriangle internal_triangle;
+
+  
+  /** Type of InternalNode */
+  struct InternalNode
+  {
+    std::vector<idx_type> adj_triangles_;
+  };
+  /** Type of InternalTriangle */
+  typedef InternalNode internal_node;
+
+
+  /** Type of InternalEdge */
+  struct InternalEdge
+  {
+    std::vector<idx_type> adj_triangles_;
+  };
+
+  /** Type of InternalTriangle */
+  typedef InternalEdge internal_edge;
+
+
+  /** Define types from Graph container for nodes/edges */
+  typedef Graph<internal_node, internal_edge> GraphType;
+  typedef typename GraphType::Node graph_node;
+  typedef typename GraphType::Edge graph_edge;
+  typedef typename GraphType::NodeIterator graph_node_iterator;
+  typedef typename GraphType::EdgeIterator graph_edge_iterator;
+  /** Define types from Graph container for triangles */
+  typedef Graph<internal_triangle, int> GraphTriangleType;
+
+
+  class NodeIncidentIterator;
+  typedef NodeIncidentIterator node_incident_iterator;
+
+  
+   
+  
+
+
+
+  
 
   /** Type of triangle iterators, which iterate over all mesh triangles. */
   class TriangleIterator;
@@ -242,13 +271,13 @@ class Mesh {
       }
 
       /** Return node at position i in this Triangle */
-      Node node(idx_type i) const {
+      node_type node(idx_type i) const {
         assert(i >= 0 && i < 3);
         return nodes_[i];
       }
 
 
-      Edge edge1(idx_type i) const {
+      edge_type edge1(idx_type i) const {
         assert(i >= 0 && i < 3);
 
         // TODO: is there a better way than has_edge() ??
@@ -408,9 +437,9 @@ class Mesh {
     // The value stored in edge is the edge idx in adj_e2t.
     // we need it since we don't have dirrect access to edge's idxs
     // This is what we will use for iterating over triangles adjacent to an edge
-    g_nodes_.add_edge(a, b, g_nodes_.num_edges());
-    g_nodes_.add_edge(b, c, g_nodes_.num_edges());
-    g_nodes_.add_edge(a, c, g_nodes_.num_edges());
+    auto e1 = g_nodes_.add_edge(a, b);
+    auto e2 = g_nodes_.add_edge(b, c);
+    auto e3 = g_nodes_.add_edge(a, c);
     
     // TODO: we are storing an empty/invalid Point. other options?
     g_triangles_.add_node( Point(), InternalTriangle(a.index(), b.index(), c.index(), value));
@@ -711,17 +740,12 @@ class Mesh {
 
  private:
 
-  /** Graph that holds nodes*/
+  /** Graph that holds nodes and edges*/
   GraphType g_nodes_;
 
-  /** Graph that holds nodes that represent the center of each triangle*/
-  GraphType g_triangles_;
+  /** Graph that holds nodes that represent the center of each triangle and internal_triangle objects*/
+  GraphTriangleType g_triangles_;
 
-  /** Stores idxs of adjacent triangles to edges */
-  std::vector< std::vector<idx_type> > adj_e2t_;
-  
-  /** Stores idxs of adjacent triangles to nodes */
-  std::vector< std::vector<idx_type> > adj_n2t_;
 
 };
 
