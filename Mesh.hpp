@@ -494,8 +494,12 @@ class Mesh {
 			auto t = *it; 
 			//Cycle through t's 3 edges and compare with the current triangle's edges. 
 			for (int j = 0; j<3; ++j){
-				if (t.edge(j) == e1 || t.edge(j) == e2 || t.edge(j) == e3)
+				t.edge(0);
+// 				std::cerr << "looping through el " << j ; 
+				if (t.edge(0) == e1 || t.edge(0) == e2 || t.edge(0) == e3){
+// 					std::cerr << "found an edge " ; 
 					g_triangles_.add_edge(n,g_triangles_.node(t.index()));
+					}
 			}
 		}
 		
@@ -507,9 +511,9 @@ class Mesh {
 		e3.ge_.value().adj_triangles_.push_back(tri_idx);
 	
 		//Adding new triangle to the adj_list of the three nodes (make sure this triangle has not been added before!)		
-		a.gn_.value().adj_triangles_.push_back(tri_idx);
-		b.gn_.value().adj_triangles_;//.push_back(tri_idx);
-		c.gn_.value().adj_triangles_;//.push_back(tri_idx);
+		// a.gn_.value().adj_triangles_.push_back(tri_idx);
+// 		b.gn_.value().adj_triangles_;//.push_back(tri_idx);
+// 		c.gn_.value().adj_triangles_;//.push_back(tri_idx);
 			 
     return Triangle(this, a, b, c, tri_idx);
   };
@@ -546,8 +550,12 @@ class Mesh {
      * @Return Node object.
      */
     Triangle operator*() const {
-      // TODO: construct triangle
-      return Triangle();
+      auto n1_idx= m_->g_triangles_.node(idx_).value().node_idx1;
+      auto n2_idx = m_->g_triangles_.node(idx_).value().node_idx2;
+      auto n3_idx = m_->g_triangles_.node(idx_).value().node_idx3;
+      
+      return Triangle(m_,Node(m_,m_->g_nodes_.node(n1_idx)),Node(m_,m_->g_nodes_.node(n2_idx)),Node(m_,m_->g_nodes_.node(n3_idx))
+      ,idx_);
     }
 
     /**
