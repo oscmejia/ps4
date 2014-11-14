@@ -199,6 +199,8 @@ class Mesh {
       Node(const Mesh* m, graph_node gn) : m_(const_cast<Mesh*>(m)), gn_(gn) {
         assert(m_ != nullptr);
       }
+
+    friend class Mesh;
   };
 
 
