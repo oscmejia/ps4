@@ -471,6 +471,16 @@ class Mesh {
 			auto t = *it; 
 			if (t.edge(0) == E1 || t.edge(0) == E2 || t.edge(0) == E3)
 				g_triangles_.add_edge(n,g_triangles_.node(t.index()));
+				
+			else{
+				if (t.edge(1) == E1 || t.edge(1) == E2 || t.edge(1) == E3)
+					g_triangles_.add_edge(n,g_triangles_.node(t.index()));
+			
+				else{				
+					if (t.edge(2) == E1 || t.edge(2) == E2 || t.edge(2) == E3)
+						g_triangles_.add_edge(n,g_triangles_.node(t.index()));
+				}
+			}
 		}
 	
     // TODO: Add idxs of triangles adjacent to the edges of this triangle 
@@ -508,7 +518,7 @@ class Mesh {
     /** Difference between iterators */
     typedef std::ptrdiff_t difference_type;
 
-    /** Construct an invalid TriangleIterator. */
+     /** Construct an invalid TriangleIterator. */
     TriangleIterator() {
     }
 
@@ -516,7 +526,7 @@ class Mesh {
      * Reference operator for TriangleIterator.
      * Complexity: O(1).
      *
-     * @Return Triangle object.
+     * @Return Node object.
      */
     Triangle operator*() const {
       // TODO: construct triangle
@@ -530,43 +540,42 @@ class Mesh {
      * @Return TriangleIterator object by reference.
      */
     TriangleIterator& operator++() {
-      //++idx_;
+      ++idx_;
       return *this;
     }
 
     /**
-     * Equality Operator for TriangleIterator.
+     * Equialy Operator for TriangleIterator.
      * Complexity: O(1).
      *
      * @Return bool, true if both TriangleIterator's are equial.
      */
     bool operator==(const TriangleIterator& other) const {
-      void(); //return std::tie(m_, idx_) == std::tie(other.m_, other.idx_);
+      return std::tie(m_, idx_) == std::tie(other.m_, other.idx_);
     }
 
    private:
 
-    TriangleIterator(const GraphTriangleType* g)
-        : gt_(const_cast<GraphTriangleType*>(g)){
+    TriangleIterator(const Mesh* m, idx_type idx)
+        : m_(const_cast<Mesh*>(m)), idx_(idx) {
     }
 
-    /** Reference to the graph holding triangle nodes */
-    GraphTriangleType* gt_;
-    
-    /** Node Iterator from g_triangles_*/
-    //idx_type idx_;
+    /** Reference to the mesh */
+    Mesh* m_;
+    /** Triangle idx */
+    idx_type idx_;
 
     friend class Mesh;
   };
 
-  /**
+ /**
    * Return a triangle_iterator pointing to the begining
    * Complexity: O(1).
    *
    * @return TriangleIterator
    */
   triangle_iterator triangle_begin() const {
-    return g_triangles_.node_begin(); // need to wrap around a triangle_iterator object...
+    return triangle_iterator( this, 0 );
   }
 
   /**
@@ -576,8 +585,10 @@ class Mesh {
    * @return TriangleIterator
    */
   triangle_iterator triangle_end() const {
-    void(); //return triangle_iterator( this, g_triangles_.size() );
+    return triangle_iterator( this, g_triangles_.size() );
   }
+
+
 
 
 
