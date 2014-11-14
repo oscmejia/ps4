@@ -51,7 +51,7 @@ int main(int argc, char** argv)
   sf_print(m.num_nodes() == 3, "Mesh has 3 Nodes");
   
   sf_print(m.num_triangles() == 0, "Mesh has no triangles");
-  m.add_triangle( nodes[0], nodes[1], nodes[2] );
+  auto _t1 = m.add_triangle( nodes[0], nodes[1], nodes[2] );
   sf_print(m.num_triangles() == 1, "Mesh has 1 triangle");
 
 
@@ -64,6 +64,9 @@ int main(int argc, char** argv)
   sf_print(t1.node(0).position() == p1 || t1.node(0).position() == p2 || t1.node(0).position() == p3, "p1 is stored in one of the nodes in triangle" );
   sf_print(t1.node(1).position() == p1 || t1.node(1).position() == p2 || t1.node(1).position() == p3, "p2 is stored in one of the nodes in triangle"  );
   sf_print(t1.node(2).position() == p1 || t1.node(2).position() == p2 || t1.node(2).position() == p3, "p3 is stored in one of the nodes in triangle"  );
+  
+  sf_print(m.triangle(0) == _t1, "get triangle at position 0 and compare with _t1");
+
 
   //sf_print(t1.edge(0).position() == p1 || t1.node(0).position() == p2 || t1.node(0).position() == p3 );
   
