@@ -1,13 +1,9 @@
-#include <fstream>
-#include "CS207/SDLViewer.hpp"
 #include "Mesh.hpp"
 #include "CS207/Util.hpp"
 
 
 typedef Mesh<int> MeshType;
-typedef Graph<int, int> GraphType;
-typedef GraphType::node_type Node;
-typedef GraphType::edge_type Edge;
+typedef MeshType::Node node_type;
 
 using namespace std;
 using namespace CS207;
@@ -15,16 +11,16 @@ using namespace CS207;
 static unsigned fail_count = 0;
 
 template <typename T>
-void sf_print(T a, string msg = "") {
+void sf_print(T a, std::string msg = "") {
   (void) a;
-  cerr << msg << " [Success]" << endl;
+  std::cerr << msg << " [Success]" << std::endl;
 }
 
-void sf_print(bool sf, string msg = "") {
+void sf_print(bool sf, std::string msg = "") {
   if (sf)
-    cerr << msg << " [Success]" << endl;
+    std::cerr << msg << " [Success]" << std::endl;
   else {
-    cerr << msg << " [FAIL]" << endl;
+    std::cerr << msg << " [FAIL]" << std::endl;
     ++fail_count;
   }
 }
@@ -32,49 +28,40 @@ void sf_print(bool sf, string msg = "") {
 
 int main(int argc, char** argv)
 {
-  // Check arguments
-  if (argc < 2) {
-    std::cerr << "Usage: " << argv[0] << " NODES_FILE EDGES_FILE\n";
-    exit(1);
-  }
+  (void) argc;
+  (void) argv;
 
+  Point p1(CS207::random(), CS207::random(), CS207::random());
+  Point p2(CS207::random(), CS207::random(), CS207::random());
+  Point p3(CS207::random(), CS207::random(), CS207::random());
+
+
+  std::vector<node_type> nodes;
   // Define an empty Mesh
   MeshType m;
-
-
+  nodes.push_back(m.add_node(p1));
+  sf_print(m.num_nodes() == 1, "Mesh has 1 Node");
   
-  /*
-  g.echo();
-
-  // Get the edge length, should be the same for each edge
-  double h = g.edge(0).length();
-
-  sf_print(g.num_nodes() == 25, "Graph has 25 Nodes");
-  sf_print(g.num_edges() == 40, "Graph has 40 Edges");
-  std::cout << "Edges: " << g.num_edges() << std::endl << std::endl;
-
-  std::cout << std::endl << "Remove node 6: " << std::endl;
-  sf_print(g.remove_node(g.node(6)), "Remove node 6");
-  sf_print(g.num_nodes() == 24, "Graph has 24 Nodes");
-  sf_print(g.num_edges() == 36, "Graph has 40 Edges");
-  std::cout << "Edges: " << g.num_edges() << " Nodes: " << g.num_nodes() << std::endl << std::endl;
-
-  g.echo();
+  nodes.push_back(m.add_node(p2));
+  sf_print(m.num_nodes() == 2, "Mesh has 2 Nodes");
+  
+  nodes.push_back(m.add_node(p3));
+  sf_print(m.num_nodes() == 3, "Mesh has 3 Nodes");
+  
+  sf_print(m.num_triangles() == 0, "Mesh has no triangles");
+  m.add_triangle( nodes[0], nodes[1], nodes[2] );
+  sf_print(m.num_triangles() == 1, "Mesh has 1 triangle");
 
 
-  int i = 0;
-  for (auto it = g.edge_begin(); it != g.edge_end(); ++it) {
 
-    unsigned idx1 = (*it).node1().index();
-    unsigned idx2 = (*it).node2().index();
 
-    std::cout << i <<  " - E.node1().index() : " << idx1 << std::endl;
-    std::cout << i <<  " - E.node2().index() : " << idx2 << std::endl;
 
-    std::cout << std::endl;
-    ++i;
-  }
-  */
+  if (fail_count) {
+    std::cerr << "\n" << fail_count
+        << (fail_count > 1 ? " FAILURES" : " FAILURE") << std::endl;
+    return 1;
+  } 
+  else
+    return 0;
 
-  return 0;
 }
