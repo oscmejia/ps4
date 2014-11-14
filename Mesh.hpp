@@ -277,6 +277,15 @@ class Mesh {
       edge_value_type& value(){
       	return ge_.value().user_value;  
       };
+      
+      node_type node1() {
+      	return (m_,ge_.node1());
+      	};
+
+		  node_type node2() {
+      	return Node(m_,ge_.node2());
+      	};
+
 
     private:
 
@@ -329,7 +338,24 @@ class Mesh {
 
       /** Accessing outward normal vectors of an edge of a triangle.*/
       Point normals_vector(const Edge& e) {
-        // TODO: write implementation
+      	Point p1 = e.node1().position();
+      	Point p2 = e.node2().position();
+      	     	
+      	int dx = p1.x -p2.x;
+      	int dy = p1.y - p2.y; 
+      	
+      	node_type n;
+      	
+      	//Find 3rd node in triangle
+      	for (auto i=0; i<3; i++){
+      		n = node(i);
+      		if (n!= e.node(1) && n!=e.node2())
+      			break;
+      	}
+      	
+      	//Determining direction of vector
+      	return Point(-dy,dx,0);
+      	
       }
 
       double area() const {
@@ -383,22 +409,22 @@ class Mesh {
 
 
 
-      /**
-       * Returns a Triangle adjacent to the edge idx provided.
-       * @return triangle_type
-       */
-      triangle_type triangle(idx_type edge_idx) const {
-        // TODO: implement
-      }
-
-
-      /**
-       * Returns a Triangle adjacent to the edge provided.
-       * @return triangle_type
-       */
-      triangle_type triangle(edge_type edge) const {
-        // TODO: implement
-      }
+ // 			/**
+//        * Returns a Triangle adjacent to the edge idx provided.
+//        * @return triangle_type
+//       
+//       triangle_type triangle(idx_type edge_idx) const {
+//         // TODO: implement
+//       }
+// 
+// 
+//       /**
+//        * Returns a Triangle adjacent to the edge provided.
+//        * @return triangle_type
+//       
+//       triangle_type triangle(edge_type edge) const {
+//         // TODO: implement
+//       }
 
 
     private:
@@ -495,7 +521,8 @@ class Mesh {
     assert( g_nodes_.has_node(c.gn_) );
 
     
-    //TODO: If triangle has already been added, return the Triangle 
+    //TODO: If triangle has already been added, return the Triangle
+     
 
     //Create Mesh::Edge objects for comparison with existing triangles to create adj_list below
     edge_type e1 = Edge(this,g_nodes_.add_edge(a.gn_, b.gn_)); 
@@ -510,7 +537,6 @@ class Mesh {
 			auto t = *it; 
 			//Cycle through t's 3 edges and compare with the current triangle's edges. 
 			for (int j = 0; j<3; ++j){
-				t.edge(0);
 				if (t.edge(j) == e1 || t.edge(j) == e2 || t.edge(j) == e3){ 
  					if (n != g_triangles_.node(t.index()))
 						g_triangles_.add_edge(n,g_triangles_.node(t.index()));
@@ -525,7 +551,9 @@ class Mesh {
 		e2.ge_.value().adj_triangles_.push_back(tri_idx);
 		e3.ge_.value().adj_triangles_.push_back(tri_idx);
 	
-		//Adding new triangle to the adj_list of the three nodes (make sure this triangle has not been added before!)		
+		//Adding new triangle idx to the adj_list of the three nodes (make sure this triangle has not been added before!)	
+		  
+		 // std::cerr<< "Size is " << a.gn_.value().adj_triangles_.push_back(1) ; //size();	
 		//a.gn_.value().adj_triangles_.push_back(tri_idx);
 		//b.gn_.value().adj_triangles_;//.push_back(tri_idx);
 		//c.gn_.value().adj_triangles_;//.push_back(tri_idx);
