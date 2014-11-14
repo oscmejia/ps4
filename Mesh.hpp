@@ -29,19 +29,17 @@ class Mesh {
   /** Type value for triangles custom data */
   typedef T triangle_value_type;
   
-  /** Type value for nodes custom data */
+  /** Type value for nodes user data */
   typedef N node_value_type;
   
-  /** Type value for edge custom data */
+  /** Type value for edge user data */
   typedef E edge_value_type;
-  
   
   /** Type of sizes. */
   typedef unsigned size_type;
 
   /** Type value for indexes */
   typedef unsigned idx_type;
-
 
 
   /** @struct InternalTriangle */
@@ -51,11 +49,11 @@ class Mesh {
     idx_type node_idx2;
     idx_type node_idx3;
     //idx_type center_idx;
-    triangle_value_type value;
+    triangle_value_type user_value;
     
 
     InternalTriangle(idx_type node_idx1, idx_type node_idx2, idx_type node_idx3, triangle_value_type value) 
-      : node_idx1(node_idx1), node_idx2(node_idx2), node_idx3(node_idx3), value(value) {
+      : node_idx1(node_idx1), node_idx2(node_idx2), node_idx3(node_idx3), user_value(value) {
     }
 
   };
@@ -67,6 +65,17 @@ class Mesh {
   struct InternalNode
   {
     std::vector<idx_type> adj_triangles_;
+    node_value_type user_value;
+    
+    //Constructor with user value
+    InternalNode(node_value_type value) 
+      : user_value(value) {
+    }
+    
+    //Default Constructor
+    InternalNode() {
+    }
+    
   };
   /** Type of InternalNode */
   typedef InternalNode internal_node;
@@ -76,6 +85,18 @@ class Mesh {
   struct InternalEdge
   {
     std::vector<idx_type> adj_triangles_;
+    edge_value_type user_value;
+    
+  	//Constructor with user value
+    InternalEdge(node_value_type value) 
+      : user_value(value) {
+    }
+    
+    //Default Constructor
+    InternalEdge() {
+    }
+    
+    
   };
 
   /** Type of InternalEdge */
@@ -156,12 +177,12 @@ class Mesh {
   class Node : public totally_ordered<Node>  {
     public:
 
-      /** Test whether this edge and @a x are equal.
+      /** Test whether this nodes and @a x are equal.
        *
-       * Equal edges are from the same mesh and have the same graph_edge.
+       * Equal nodes are from the same mesh and have the same graph_edge.
        */
       bool operator==(const Node& x) const {
-        return std::tie(gn_.uid_, m_) == std::tie(x.gn_.uid_, x.m_);
+        return std::tie(gn_, m_) == std::tie(x.gn_, x.m_);
       }
 
       /** Test whether this node is less than @a x in the global order.
@@ -174,6 +195,11 @@ class Mesh {
        */
       bool operator<(const Node& x) const {
         return std::tie(gn_.uid_, m_) < std::tie(x.gn_.uid_, x.m_);
+      }
+      
+      //Returns position of current Mesh::Node
+      Point position() const {
+      	return gn_.position();
       }
 
       /**
@@ -194,7 +220,7 @@ class Mesh {
       
       // Return this node's value.
       node_value_type& value(){
-      	return gn_.value();  //right? because gn_.value() only returns the value field within the internal_node 
+      	return gn_.value().user_value;  
       };
 
     private:
@@ -223,7 +249,7 @@ class Mesh {
        * Equal edges are from the same mesh and have the same graph_edge.
        */
       bool operator==(const Edge& x) const {
-        return std::tie(m_, ge_.node1_uid, ge_.node2_uid) == std::tie(x.m_, x.ge_.node1_uid, x.ge_.node2_uid);
+        return std::tie(m_, ge_) == std::tie(x.m_, x.ge_);
       }
 
       /** Test whether this edge is less than @a x in the global order.
@@ -235,21 +261,21 @@ class Mesh {
        * and y, exactly one of x == y, x < y, and y < x is true.
        */
       bool operator<(const Edge& x) const {
-        return std::tie(m_, ge_.node1_uid, ge_.node2_uid) < std::tie(x.m_, x.ge_.node1_uid, x.ge_.node2_uid);
+        return std::tie(m_, ge_) < std::tie(x.m_, x.ge_);
       }
 
-      triangle_type triangle(idx_type i) {
-        assert(i < num_adj_triangles());
-        // TODO: implement
-      }
+      // triangle_type triangle(idx_type i) {
+//         assert(i < num_adj_triangles());
+//         // TODO: implement
+//       }
 
       size_type num_adj_triangles() {
-        // TODO: implement
+        return ge_.value().adj_triangles_.size();
       }
       
       // Return this edge's value.
       edge_value_type& value(){
-      	return ge_.value();  
+      	return ge_.value().user_value;  
       };
 
     private:
@@ -283,6 +309,11 @@ class Mesh {
       /** Construct an invalid Triangle. */
       Triangle() {
       }
+      
+      /** Return this triangles's index, a number in the range [0, num_triangles). */
+     size_type index() const {
+      return idx_;
+    }
 
       /** Return node at position i in this Triangle */
       node_type node(idx_type i) const {
@@ -293,8 +324,7 @@ class Mesh {
 			//Return edge i, defined as the one opposite node i, i.e composed of the other two nodes in the triangle
       edge_type edge(idx_type i) const {
         assert(i >= 0 && i < 3);
-				return Edge(m_,m_->g_nodes_.has_edge(nodes_[(i+1)% 3], nodes_[(i+2)% 3]));
-        
+				return Edge(m_,m_->g_nodes_.add_edge(nodes_[(i+1)% 3].gn_,nodes_[(i+2)% 3].gn_)); 
       }
 
       /** Accessing outward normal vectors of an edge of a triangle.*/
@@ -315,7 +345,8 @@ class Mesh {
        * Equal triangles are from the same mesh and have the same nodes and edges.
        */
       bool operator==(const Triangle& x) const {
-        return std::tie(m_, nodes_[0], nodes_[1], nodes_[2]) == std::tie(x.m_, x.node(0), x.node(1), x.node(2));
+        //return std::tie(m_, nodes_[0], nodes_[1], nodes_[2]) == std::tie(x.m_, x.node(0), x.node(1), x.node(2));
+        return std::tie(m_,idx_) == std::tie(x.m_,x.idx_);
       }
 
       /** Test whether this triangle is less than @a x in the global order.
@@ -327,26 +358,27 @@ class Mesh {
        * and y, exactly one of x == y, x < y, and y < x is true.
        */
       bool operator<(const Triangle& x) const {
-        // TODO: can we just compare triangle idx ?
-        return std::tie(m_, nodes_[0], nodes_[1], nodes_[2]) < std::tie(x.m_, x.node(0), x.node(1), x.node(2));
+        // TODO: can we just compare triangle idx ? - I think so! 
+        return std::tie(idx_,m_) < std::tie(x.idx_,m_);
+        //return std::tie(m_, nodes_[0], nodes_[1], nodes_[2]) < std::tie(x.m_, x.node(0), x.node(1), x.node(2));
       }
 
       /**
-       * Returns a reference to this triangle's value of type T.
+       * Returns a reference to this triangle's user value of type T.
        *
        * @return Object of type T by reference
        */
       triangle_value_type& value() {
-        return m_->g_triangles_[idx_].value();
+        return m_->g_triangles_.node(idx_).value().user_value;
       }
 
       /**
-       * Returns a reference to this trinagle's value of type T as a constant.
+       * Returns a reference to this triangle's value of type T as a constant.
        *
        * @return Object of type T by reference as a constant.
        */
       const triangle_value_type& value() const {
-        return m_->g_triangles_[idx_].value;
+        return m_->g_triangles_.node(idx_).value(); //.value @ the end? 
       }
 
 
@@ -371,7 +403,7 @@ class Mesh {
 
     private:
       
-      Triangle(Mesh* m, Node node1, Node node2, Node node3, idx_type idx) 
+      Triangle(const Mesh* m, Node node1, Node node2, Node node3, idx_type idx) 
         : m_(const_cast<Mesh*>(m)), idx_(idx) {
         
         nodes_.push_back(node1);
@@ -401,7 +433,6 @@ class Mesh {
   void clear() {
     g_nodes_.clear();
     g_triangles_.clear();
-    // TODO: clear mesh data structures
   }
 
 
@@ -419,6 +450,24 @@ class Mesh {
   size_type num_edges() const {
     return g_nodes_.num_edges();
   }
+  
+  
+	/** Return triangle at position i in this Mesh */
+	triangle_type triangle(idx_type i) const {
+		assert(i >= 0 && i < num_triangles());
+	
+		auto n1_idx= g_triangles_.node(i).value().node_idx1;
+		auto n2_idx = g_triangles_.node(i).value().node_idx2;
+		auto n3_idx = g_triangles_.node(i).value().node_idx3;
+	
+		return Triangle(this,
+      Node(this,g_nodes_.node(n1_idx)),
+      Node(this,g_nodes_.node(n2_idx)),
+      Node(this,g_nodes_.node(n3_idx)),
+      i);
+	
+	}
+
 
   /** Stores a graph node and returns a mesh node */
   Node add_node(const Point& position){
@@ -441,39 +490,48 @@ class Mesh {
     const triangle_value_type& value = triangle_value_type()) {
     
     assert(a != b && b != c && a != c);
-    assert( g_nodes_.has_node(a) );
-    assert( g_nodes_.has_node(b) );
-    assert( g_nodes_.has_node(c) );
+    assert( g_nodes_.has_node(a.gn_) );
+    assert( g_nodes_.has_node(b.gn_) );
+    assert( g_nodes_.has_node(c.gn_) );
 
-   
-    auto e1 = g_nodes_.add_edge(a, b);
-    auto e2 = g_nodes_.add_edge(b, c);
-    auto e3 = g_nodes_.add_edge(a, c);
     
-    // TODO: we are storing an empty/invalid Point. other options? 
-    g_triangles_.add_node( Point(), InternalTriangle(a.index(), b.index(), c.index(), value));
+    //TODO: If triangle has already been added, return the Triangle 
 
-    // TODO: Find adjacent triangles to this triangle, then call g_triangles_.add_edge() for each adjacent triangle found.
+    //Create Mesh::Edge objects for comparison with existing triangles to create adj_list below
+    edge_type e1 = Edge(this,g_nodes_.add_edge(a.gn_, b.gn_)); 
+    edge_type e2 = Edge(this,g_nodes_.add_edge(b.gn_, c.gn_));
+    edge_type e3 = Edge(this,g_nodes_.add_edge(a.gn_, c.gn_));
     
-    //Iterate through all triangles. If there is a common edge, they are adjacent.  
-// 		for (auto it = triangle_begin(); it != triangle_end(); ++it) {
-// 			auto t = *it; 
-// 			if t.edge(0)
-// 		}
+    //Add node to triangle graph
+    auto n = g_triangles_.add_node( Point(), InternalTriangle(a.gn_.index(), b.gn_.index(), c.gn_.index(), value));
+
+	 //Iterate through all triangles. If they are adjacent (have at least one common edge), add edge between triangle nodes.  
+		for (auto it = triangle_begin(); it != triangle_end(); ++it) {
+			auto t = *it; 
+			//Cycle through t's 3 edges and compare with the current triangle's edges. 
+			for (int j = 0; j<3; ++j){
+				t.edge(0);
+				if (t.edge(j) == e1 || t.edge(j) == e2 || t.edge(j) == e3){ 
+ 					if (n != g_triangles_.node(t.index()))
+						g_triangles_.add_edge(n,g_triangles_.node(t.index()));
+					}
+			}
+		}
+		
+		idx_type tri_idx = g_triangles_.num_nodes()-1;
+		
+		//Adding new triangle to the adj_list of the three new edges (make sure this triangle has not been added before!)
+		e1.ge_.value().adj_triangles_.push_back(tri_idx);
+		e2.ge_.value().adj_triangles_.push_back(tri_idx);
+		e3.ge_.value().adj_triangles_.push_back(tri_idx);
 	
-    // TODO: Add idxs of triangles adjacent to the edges of this triangle 
-    // TODO: Add idxs of triangles adjacent to the nodes of this triangle
-    
-    return Triangle(this, a, b, c, g_triangles_.num_nodes()-1);
+		//Adding new triangle to the adj_list of the three nodes (make sure this triangle has not been added before!)		
+		//a.gn_.value().adj_triangles_.push_back(tri_idx);
+		//b.gn_.value().adj_triangles_;//.push_back(tri_idx);
+		//c.gn_.value().adj_triangles_;//.push_back(tri_idx);
+			 
+    return Triangle(this, a, b, c, tri_idx);
   };
-
-
-
-
-
-
-
-
 
   ///////////////
   // Iterators //
@@ -496,7 +554,7 @@ class Mesh {
     /** Difference between iterators */
     typedef std::ptrdiff_t difference_type;
 
-    /** Construct an invalid TriangleIterator. */
+     /** Construct an invalid TriangleIterator. */
     TriangleIterator() {
     }
 
@@ -507,8 +565,12 @@ class Mesh {
      * @Return Node object.
      */
     Triangle operator*() const {
-      // TODO: construct triangle
-      return Triangle();
+      auto n1_idx= m_->g_triangles_.node(idx_).value().node_idx1;
+      auto n2_idx = m_->g_triangles_.node(idx_).value().node_idx2;
+      auto n3_idx = m_->g_triangles_.node(idx_).value().node_idx3;
+      
+      return Triangle(m_,Node(m_,m_->g_nodes_.node(n1_idx)),Node(m_,m_->g_nodes_.node(n2_idx)),Node(m_,m_->g_nodes_.node(n3_idx))
+      ,idx_);
     }
 
     /**
@@ -546,7 +608,7 @@ class Mesh {
     friend class Mesh;
   };
 
-  /**
+ /**
    * Return a triangle_iterator pointing to the begining
    * Complexity: O(1).
    *
@@ -570,6 +632,8 @@ class Mesh {
 
 
 
+
+
   /** @class Mesh::NodeIterator
    * @brief Iterator class for Mesh::Node. A forward iterator. */
   class NodeIterator : private totally_ordered<NodeIterator> {
@@ -587,19 +651,18 @@ class Mesh {
     /** Difference between iterators */
     typedef std::ptrdiff_t difference_type;
 
-    /** Construct an invalid TriangleIterator. */
+    /** Construct an invalid NodeIterator. */
     NodeIterator() {
     }
 
     /**
-     * Reference operator for TriangleIterator.
+     * Reference operator for NodeIterator.
      * Complexity: O(1).
      *
      * @Return Node object.
      */
     Node operator*() const {
-      // TODO: construct node
-      return Node();
+      return Node(m_,*it_);
     }
 
     /**
@@ -614,10 +677,10 @@ class Mesh {
     }
 
     /**
-     * Equialy Operator for TriangleIterator.
+     * Equialy Operator for NodeIterator.
      * Complexity: O(1).
      *
-     * @Return bool, true if both TriangleIterator's are equial.
+     * @Return bool, true if both NodeIterators are equial.
      */
     bool operator==(const NodeIterator& other) const {
       return std::tie(m_, it_) == std::tie(other.m_, other.it_);
@@ -679,19 +742,18 @@ class Mesh {
     /** Difference between iterators */
     typedef std::ptrdiff_t difference_type;
 
-    /** Construct an invalid TriangleIterator. */
+    /** Construct an invalid EdgeIterator. */
     EdgeIterator() {
     }
 
     /**
-     * Reference operator for TriangleIterator.
+     * Reference operator for EdgeIterator.
      * Complexity: O(1).
      *
      * @Return Edge object.
      */
     Edge operator*() const {
-      // TODO: construct edge
-      return Edge();
+      return Edge(m_,*it_);
     }
 
     /**
@@ -709,7 +771,7 @@ class Mesh {
      * Equialy Operator for EdgeIterator.
      * Complexity: O(1).
      *
-     * @Return bool, true if both TriangleIterator's are equial.
+     * @Return bool, true if both EdgeIterators are equial.
      */
     bool operator==(const EdgeIterator& other) const {
       return std::tie(m_, it_) == std::tie(other.m_, other.it_);
@@ -750,16 +812,12 @@ class Mesh {
   }
 
 
-
-
-
-
  private:
 
   /** Graph that holds nodes and edges*/
   GraphType g_nodes_;
 
-  /** Graph that holds nodes that represent the center of each triangle and internal_triangle objects*/
+  /** Graph that holds nodes that represent the center of each triangle and holds internal_triangle objects*/
   GraphTriangleType g_triangles_;
 
 
