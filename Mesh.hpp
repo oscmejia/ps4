@@ -402,7 +402,7 @@ class Mesh {
 
     private:
       
-      Triangle(Mesh* m, Node node1, Node node2, Node node3, idx_type idx) 
+      Triangle(const Mesh* m, Node node1, Node node2, Node node3, idx_type idx) 
         : m_(const_cast<Mesh*>(m)), idx_(idx) {
         
         nodes_.push_back(node1);
@@ -459,8 +459,11 @@ class Mesh {
 		auto n2_idx = g_triangles_.node(i).value().node_idx2;
 		auto n3_idx = g_triangles_.node(i).value().node_idx3;
 	
-		return Triangle(this,Node(this,g_nodes_.node(n1_idx)),Node(this,g_nodes_.node(n2_idx)),Node(this,g_nodes_.node(n3_idx))
-		,i);
+		return Triangle(this,
+      Node(this,g_nodes_.node(n1_idx)),
+      Node(this,g_nodes_.node(n2_idx)),
+      Node(this,g_nodes_.node(n3_idx)),
+      i);
 	
 	}
 
