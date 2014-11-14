@@ -4,7 +4,7 @@
 #include "CS207/Util.hpp"
 
 
-typedef Mesh<int> MeshType;
+typedef Mesh<int,int> MeshType;
 typedef Graph<int, int> GraphType;
 typedef GraphType::node_type Node;
 typedef GraphType::edge_type Edge;

@@ -417,9 +417,9 @@ class Mesh {
   }
 
   /** Add an triangle to the graph, or return the current triangle if it already exists.
-   * @pre @a a, @a b and @a c are distinct points that confirm a triangle
+   * @pre @a a, @a b and @a c are distinct nodes that form a triangle
    * @return an Triangle object e with t.node1() == @a a, t.node2() == @a b and t.node3() == @a c
-   * @post has_edge(@a a, @a b) == true
+   * @post has_edge(@a a, @a b) == true, has_edge(@a,@c) == true, has_edge(@b,@c) == true;
    * @post If old has_edge(@a a, @a b), new num_edges() == old num_edges().
    *       Else,                        new num_edges() == old num_edges() + 1.
    *
@@ -443,10 +443,16 @@ class Mesh {
     auto e2 = g_nodes_.add_edge(b, c);
     auto e3 = g_nodes_.add_edge(a, c);
     
-    // TODO: we are storing an empty/invalid Point. other options?
+    // TODO: we are storing an empty/invalid Point. other options? 
     g_triangles_.add_node( Point(), InternalTriangle(a.index(), b.index(), c.index(), value));
 
     // TODO: Find adjacent triangles to this triangle, then call g_triangles_.add_edge() for each adjacent triangle found.
+    
+    //iterate through all triangles. If there is a common edge, they are adjacent.  
+	for (auto it = triangle_begin(); it != triangle_end(); ++it) {
+		auto t = *it; 
+	}
+	
     // TODO: Add idxs of triangles adjacent to the edges of this triangle 
     // TODO: Add idxs of triangles adjacent to the nodes of this triangle
     
