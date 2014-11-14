@@ -5,6 +5,7 @@
 
 typedef Mesh<int,int,int> MeshType;
 typedef MeshType::Node node_type;
+typedef MeshType::Triangle triangle_type;
 
 using namespace std;
 using namespace CS207;
@@ -54,6 +55,21 @@ int main(int argc, char** argv)
   sf_print(m.num_triangles() == 1, "Mesh has 1 triangle");
 
 
+  auto first = m.triangle_begin();
+  triangle_type t1 = *first:
+  assert(ti.node(0).position() == p1 || ti.node(0).position() == p2 || ti.node(0).position() == p3 );
+  assert(ti.node(1).position() == p1 || ti.node(0).position() == p2 || ti.node(0).position() == p3 );
+  assert(ti.node(2).position() == p1 || ti.node(0).position() == p2 || ti.node(0).position() == p3 );
+
+  /**
+  auto first = m.triangle_begin();
+  auto last = m.triangle_end();
+
+  while(first != last){
+    triangle_type triangle = *first:
+    ++first;
+  }
+  **/
 
 
 
