@@ -14,7 +14,7 @@
  *
  * Users can add and retrieve nodes, edges and triangles.
  */
-template <typename T>
+template <typename T, typename N, typename E>
 class Mesh {
 
  public:
@@ -28,11 +28,18 @@ class Mesh {
 
   /** Type value for triangles custom data */
   typedef T triangle_value_type;
-
-  /** Type of indexes and sizes. */
+  
+  /** Type value for nodes custom data */
+  typedef N node_value_type;
+  
+  /** Type value for edge custom data */
+  typedef E edge_value_type;
+  
+  
+  /** Type of sizes. */
   typedef unsigned size_type;
 
-  /** Type value for idexes */
+  /** Type value for indexes */
   typedef unsigned idx_type;
 
 
@@ -56,22 +63,22 @@ class Mesh {
   typedef InternalTriangle internal_triangle;
 
   
-  /** Type of InternalNode */
+  /** Def of InternalNode */
   struct InternalNode
   {
     std::vector<idx_type> adj_triangles_;
   };
-  /** Type of InternalTriangle */
+  /** Type of InternalNode */
   typedef InternalNode internal_node;
 
 
-  /** Type of InternalEdge */
+  /** Def of InternalEdge */
   struct InternalEdge
   {
     std::vector<idx_type> adj_triangles_;
   };
 
-  /** Type of InternalTriangle */
+  /** Type of InternalEdge */
   typedef InternalEdge internal_edge;
 
 
@@ -88,13 +95,6 @@ class Mesh {
   class NodeIncidentIterator;
   typedef NodeIncidentIterator node_incident_iterator;
 
-  
-   
-  
-
-
-
-  
 
   /** Type of triangle iterators, which iterate over all mesh triangles. */
   class TriangleIterator;
@@ -156,12 +156,12 @@ class Mesh {
   class Node : public totally_ordered<Node>  {
     public:
 
-      /** Test whether this edge and @a x are equal.
+      /** Test whether this nodes and @a x are equal.
        *
-       * Equal edges are from the same mesh and have the same graph_edge.
+       * Equal nodes are from the same mesh and have the same graph_edge.
        */
       bool operator==(const Node& x) const {
-        return std::tie(gn_.uid_, m_) == std::tie(x.gn_.uid_, x.m_);
+        return std::tie(gn_, m_) == std::tie(x.gn_, x.m_);
       }
 
       /** Test whether this node is less than @a x in the global order.
@@ -177,7 +177,7 @@ class Mesh {
       }
 
       /**
-       * Returns node_incident_iterator poiting to the first element.
+       * Returns node_incident_iterator pointing to the first element.
        * @return node_incident_iterator
        */
       node_incident_iterator triangle_begin() const {
@@ -185,12 +185,17 @@ class Mesh {
       }
 
       /**
-       * Returns node_incident_iterator poiting to one elemnt past the last valid element.
+       * Returns node_incident_iterator pointing to one element past the last valid element.
        * @return node_incident_iterator
        */
       node_incident_iterator triangle_end() const {
-        return NodeIncidentIterator(m_, gn_.value(), m_->adj_e2t_[gn_.value()].size() );
+        void(); //return NodeIncidentIterator(m_, gn_.value(), m_->adj_n2t_[gn_.value()].size() );
       }
+      
+      // Return this node's value.
+      node_value_type& value(){
+      	return gn_.value();  //right? because gn_.value() only returns the value field within the internal_node 
+      };
 
     private:
       Mesh* m_;
@@ -199,8 +204,8 @@ class Mesh {
       Node(const Mesh* m, graph_node gn) : m_(const_cast<Mesh*>(m)), gn_(gn) {
         assert(m_ != nullptr);
       }
-
-    friend class Mesh;
+      
+      friend class Mesh;
   };
 
 
@@ -241,6 +246,11 @@ class Mesh {
       size_type num_adj_triangles() {
         // TODO: implement
       }
+      
+      // Return this edge's value.
+      edge_value_type& value(){
+      	return ge_.value();  
+      };
 
     private:
 
@@ -253,6 +263,8 @@ class Mesh {
 
         assert(m_ != nullptr);
       }
+      
+      friend class Mesh;
   };
 
 
@@ -278,15 +290,11 @@ class Mesh {
         return nodes_[i];
       }
 
-
-      edge_type edge1(idx_type i) const {
+			//Return edge i, defined as the one opposite node i, i.e composed of the other two nodes in the triangle
+      edge_type edge(idx_type i) const {
         assert(i >= 0 && i < 3);
-
-        // TODO: is there a better way than has_edge() ??
-        if(i == 2)
-          return m_->g_nodes_.has_edge(nodes_[0], nodes_[i]);
-
-        return m_->g_nodes_.has_edge(nodes_[i], nodes_[i+1]);
+				return Edge(m_,m_->g_nodes_.has_edge(nodes_[(i+1)% 3], nodes_[(i+2)% 3]));
+        
       }
 
       /** Accessing outward normal vectors of an edge of a triangle.*/
@@ -301,7 +309,6 @@ class Mesh {
         Point c = nodes_[2].point;
         return std::abs( ( a.x*(b.y-c.y) + b.x*(c.y-a.y) + c.x*(a.y-b.y) ) / (2) );
       }
-
 
       /** Test whether this triangle and @a x are equal.
        *
@@ -330,7 +337,7 @@ class Mesh {
        * @return Object of type T by reference
        */
       triangle_value_type& value() {
-        return m_->g_triangles_[idx_].value;
+        return m_->g_triangles_[idx_].value();
       }
 
       /**
@@ -434,26 +441,25 @@ class Mesh {
     const triangle_value_type& value = triangle_value_type()) {
     
     assert(a != b && b != c && a != c);
-    assert( g_nodes_.has_node(a) );
-    assert( g_nodes_.has_node(b) );
-    assert( g_nodes_.has_node(c) );
+    assert( g_nodes_.has_node(a.gn_) );
+    assert( g_nodes_.has_node(b.gn_) );
+    assert( g_nodes_.has_node(c.gn_) );
 
-    // The value stored in edge is the edge idx in adj_e2t.
-    // we need it since we don't have dirrect access to edge's idxs
-    // This is what we will use for iterating over triangles adjacent to an edge
-    auto e1 = g_nodes_.add_edge(a, b);
-    auto e2 = g_nodes_.add_edge(b, c);
-    auto e3 = g_nodes_.add_edge(a, c);
+   
+    auto e1 = g_nodes_.add_edge(a.gn_, b.gn_);
+    auto e2 = g_nodes_.add_edge(b.gn_, c.gn_);
+    auto e3 = g_nodes_.add_edge(a.gn_, c.gn_);
     
     // TODO: we are storing an empty/invalid Point. other options? 
-    g_triangles_.add_node( Point(), InternalTriangle(a.index(), b.index(), c.index(), value));
+    g_triangles_.add_node( Point(), InternalTriangle(a.gn_.index(), b.gn_.index(), c.gn_.index(), value));
 
     // TODO: Find adjacent triangles to this triangle, then call g_triangles_.add_edge() for each adjacent triangle found.
     
-    //iterate through all triangles. If there is a common edge, they are adjacent.  
-	for (auto it = triangle_begin(); it != triangle_end(); ++it) {
-		auto t = *it; 
-	}
+    //Iterate through all triangles. If there is a common edge, they are adjacent.  
+// 		for (auto it = triangle_begin(); it != triangle_end(); ++it) {
+// 			auto t = *it; 
+// 			if t.edge(0)
+// 		}
 	
     // TODO: Add idxs of triangles adjacent to the edges of this triangle 
     // TODO: Add idxs of triangles adjacent to the nodes of this triangle

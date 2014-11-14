@@ -3,7 +3,7 @@
 
 
 
-typedef Mesh<int> MeshType;
+typedef Mesh<int,int,int> MeshType;
 typedef MeshType::Node node_type;
 
 using namespace std;
