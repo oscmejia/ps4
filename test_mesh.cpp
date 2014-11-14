@@ -62,8 +62,8 @@ int main(int argc, char** argv)
   sf_print(t1.index() == 0, "Triangle has indx 0");
 
   sf_print(t1.node(0).position() == p1 || t1.node(0).position() == p2 || t1.node(0).position() == p3, "p1 is stored in one of the nodes in triangle" );
-  sf_print(t1.node(1).position() == p1 || t1.node(0).position() == p2 || t1.node(0).position() == p3, "p2 is stored in one of the nodes in triangle"  );
-  sf_print(t1.node(2).position() == p1 || t1.node(0).position() == p2 || t1.node(0).position() == p3, "p3 is stored in one of the nodes in triangle"  );
+  sf_print(t1.node(1).position() == p1 || t1.node(1).position() == p2 || t1.node(1).position() == p3, "p2 is stored in one of the nodes in triangle"  );
+  sf_print(t1.node(2).position() == p1 || t1.node(2).position() == p2 || t1.node(2).position() == p3, "p3 is stored in one of the nodes in triangle"  );
 
   //sf_print(t1.edge(0).position() == p1 || t1.node(0).position() == p2 || t1.node(0).position() == p3 );
   
