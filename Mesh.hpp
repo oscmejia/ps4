@@ -495,10 +495,9 @@ class Mesh {
 			//Cycle through t's 3 edges and compare with the current triangle's edges. 
 			for (int j = 0; j<3; ++j){
 				t.edge(0);
-// 				std::cerr << "looping through el " << j ; 
-				if (t.edge(0) == e1 || t.edge(0) == e2 || t.edge(0) == e3){
-// 					std::cerr << "found an edge " ; 
-					g_triangles_.add_edge(n,g_triangles_.node(t.index()));
+				if (t.edge(j) == e1 || t.edge(j) == e2 || t.edge(j) == e3){ 
+ 					if (n != g_triangles_.node(t.index()))
+						g_triangles_.add_edge(n,g_triangles_.node(t.index()));
 					}
 			}
 		}
