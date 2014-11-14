@@ -29,12 +29,11 @@ class Mesh {
   /** Type value for triangles custom data */
   typedef T triangle_value_type;
   
-  /** Type value for nodes custom data */
+  /** Type value for nodes user data */
   typedef N node_value_type;
   
-  /** Type value for edge custom data */
+  /** Type value for edge user data */
   typedef E edge_value_type;
-  
   
   /** Type of sizes. */
   typedef unsigned size_type;
@@ -43,19 +42,18 @@ class Mesh {
   typedef unsigned idx_type;
 
 
-
   /** @struct InternalTriangle */
   struct InternalTriangle
   {
     idx_type node_idx1;
     idx_type node_idx2;
     idx_type node_idx3;
-    idx_type center_idx;
-    triangle_value_type value;
+    //idx_type center_idx;
+    triangle_value_type user_value;
     
 
     InternalTriangle(idx_type node_idx1, idx_type node_idx2, idx_type node_idx3, triangle_value_type value) 
-      : node_idx1(node_idx1), node_idx2(node_idx2), node_idx3(node_idx3), value(value) {
+      : node_idx1(node_idx1), node_idx2(node_idx2), node_idx3(node_idx3), user_value(value) {
     }
 
   };
@@ -67,6 +65,16 @@ class Mesh {
   struct InternalNode
   {
     std::vector<idx_type> adj_triangles_;
+    node_value_type user_value;
+    
+    //Constructor with user value
+    InternalNode(node_value_type value) 
+      : user_value(value) {
+    }
+    
+    //Default Constructor
+    InternalNode() {
+    }
     
   };
   /** Type of InternalNode */
@@ -77,6 +85,18 @@ class Mesh {
   struct InternalEdge
   {
     std::vector<idx_type> adj_triangles_;
+    edge_value_type user_value;
+    
+  	//Constructor with user value
+    InternalEdge(node_value_type value) 
+      : user_value(value) {
+    }
+    
+    //Default Constructor
+    InternalEdge() {
+    }
+    
+    
   };
 
   /** Type of InternalEdge */
@@ -200,7 +220,7 @@ class Mesh {
       
       // Return this node's value.
       node_value_type& value(){
-      	return gn_.value();  //right? because gn_.value() only returns the value field within the internal_node 
+      	return gn_.value().user_value;  
       };
 
     private:
@@ -255,7 +275,7 @@ class Mesh {
       
       // Return this edge's value.
       edge_value_type& value(){
-      	return ge_.value();  
+      	return ge_.value().user_value;  
       };
 
     private:
@@ -342,21 +362,21 @@ class Mesh {
       }
 
       /**
-       * Returns a reference to this triangle's value of type T.
+       * Returns a reference to this triangle's user value of type T.
        *
        * @return Object of type T by reference
        */
       triangle_value_type& value() {
-        return m_->g_triangles_.node(idx_).value();
+        return m_->g_triangles_.node(idx_).value().user_value;
       }
 
       /**
-       * Returns a reference to this trinagle's value of type T as a constant.
+       * Returns a reference to this triangle's value of type T as a constant.
        *
        * @return Object of type T by reference as a constant.
        */
       const triangle_value_type& value() const {
-        return m_->g_triangles_.node(idx_).value();
+        return m_->g_triangles_.node(idx_).value(); //.value @ the end? 
       }
 
 
@@ -432,7 +452,7 @@ class Mesh {
 
   /** Stores a graph node and returns a mesh node */
   Node add_node(const Point& position){
-    return Node(this, g_nodes_.add_node(position,InternalNode()));
+    return Node(this, g_nodes_.add_node(position));
   }
 
   /** Add an triangle to the graph, or return the current triangle if it already exists.
@@ -459,9 +479,9 @@ class Mesh {
     //TODO: If triangle has already been added, return the Triangle 
 
     //Create Mesh::Edge objects for comparison with existing triangles to create adj_list below
-    edge_type e1 = Edge(this,g_nodes_.add_edge(a.gn_, b.gn_,InternalEdge())); 
-    edge_type e2 = Edge(this,g_nodes_.add_edge(b.gn_, c.gn_,InternalEdge()));
-    edge_type e3 = Edge(this,g_nodes_.add_edge(a.gn_, c.gn_,InternalEdge()));
+    edge_type e1 = Edge(this,g_nodes_.add_edge(a.gn_, b.gn_)); 
+    edge_type e2 = Edge(this,g_nodes_.add_edge(b.gn_, c.gn_));
+    edge_type e3 = Edge(this,g_nodes_.add_edge(a.gn_, c.gn_));
     
 	    
     // TODO: we are storing an empty/invalid Point. other options? - I think that's fine, it's really a spaceholder for now.
@@ -472,12 +492,11 @@ class Mesh {
     //Iterate through all triangles. If they are adjacent (have at least one common edge), add edge between triangle nodes.  
 		for (auto it = triangle_begin(); it != triangle_end(); ++it) {
 			auto t = *it; 
-			if (t.edge(0) == e1 || t.edge(0) == e2 || t.edge(0) == e3)
-				g_triangles_.add_edge(n,g_triangles_.node(t.index()));
-			if (t.edge(1) == e1 || t.edge(1) == e2 || t.edge(1) == e3)
+			//Cycle through t's 3 edges and compare with the current triangle's edges. 
+			for (int j = 0; j<3; ++j){
+				if (t.edge(j) == e1 || t.edge(j) == e2 || t.edge(j) == e3)
 					g_triangles_.add_edge(n,g_triangles_.node(t.index()));
-		  if (t.edge(2) == e1 || t.edge(2) == e2 || t.edge(2) == e3)
-						g_triangles_.add_edge(n,g_triangles_.node(t.index()));
+			}
 		}
 		
 		idx_type tri_idx = g_triangles_.num_nodes()-1;
@@ -486,12 +505,11 @@ class Mesh {
 		e1.ge_.value().adj_triangles_.push_back(tri_idx);
 		e2.ge_.value().adj_triangles_.push_back(tri_idx);
 		e3.ge_.value().adj_triangles_.push_back(tri_idx);
-		
-		
+	
 		//Adding new triangle to the adj_list of the three nodes (make sure this triangle has not been added before!)		
 		a.gn_.value().adj_triangles_.push_back(tri_idx);
- 		b.gn_.value().adj_triangles_.push_back(tri_idx);
-		c.gn_.value().adj_triangles_.push_back(tri_idx);
+		b.gn_.value().adj_triangles_;//.push_back(tri_idx);
+		c.gn_.value().adj_triangles_;//.push_back(tri_idx);
 			 
     return Triangle(this, a, b, c, tri_idx);
   };
@@ -771,10 +789,6 @@ class Mesh {
   edge_iterator edge_end() const {
     return edge_iterator( this, g_nodes_.edge_end() );
   }
-
-
-
-
 
 
  private:
