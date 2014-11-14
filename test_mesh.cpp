@@ -2,15 +2,9 @@
 #include "CS207/Util.hpp"
 
 
-<<<<<<< HEAD
-typedef Mesh<int,int> MeshType;
-typedef Graph<int, int> GraphType;
-typedef GraphType::node_type Node;
-typedef GraphType::edge_type Edge;
-=======
+
 typedef Mesh<int> MeshType;
 typedef MeshType::Node node_type;
->>>>>>> b2355389450053fe81043d10d6ea28642b58b308
 
 using namespace std;
 using namespace CS207;
