@@ -67,6 +67,7 @@ class Mesh {
   struct InternalNode
   {
     std::vector<idx_type> adj_triangles_;
+    
   };
   /** Type of InternalNode */
   typedef InternalNode internal_node;
@@ -175,6 +176,11 @@ class Mesh {
       bool operator<(const Node& x) const {
         return std::tie(gn_.uid_, m_) < std::tie(x.gn_.uid_, x.m_);
       }
+      
+      //Returns position of current Mesh::Node
+      Point position() const {
+      	return gn_.position();
+      }
 
       /**
        * Returns node_incident_iterator pointing to the first element.
@@ -223,7 +229,7 @@ class Mesh {
        * Equal edges are from the same mesh and have the same graph_edge.
        */
       bool operator==(const Edge& x) const {
-        void(); //return std::tie(m_, ge_.node1_uid, ge_.node2_uid) == std::tie(x.m_, x.ge_.node1_uid, x.ge_.node2_uid);
+        return std::tie(m_, ge_) == std::tie(x.m_, x.ge_);
       }
 
       /** Test whether this edge is less than @a x in the global order.
@@ -235,7 +241,7 @@ class Mesh {
        * and y, exactly one of x == y, x < y, and y < x is true.
        */
       bool operator<(const Edge& x) const {
-        return std::tie(m_, ge_.node1_uid, ge_.node2_uid) < std::tie(x.m_, x.ge_.node1_uid, x.ge_.node2_uid);
+        return std::tie(m_, ge_) < std::tie(x.m_, x.ge_);
       }
 
       triangle_type triangle(idx_type i) {
@@ -298,8 +304,7 @@ class Mesh {
 			//Return edge i, defined as the one opposite node i, i.e composed of the other two nodes in the triangle
       edge_type edge(idx_type i) const {
         assert(i >= 0 && i < 3);
-				void(); //return Edge(m_,m_->g_nodes_.has_edge(nodes_[(i+1)% 3], nodes_[(i+2)% 3]));
-        
+				return Edge(m_,m_->g_nodes_.add_edge(nodes_[(i+1)% 3].gn_,nodes_[(i+2)% 3].gn_)); 
       }
 
       /** Accessing outward normal vectors of an edge of a triangle.*/
@@ -427,7 +432,7 @@ class Mesh {
 
   /** Stores a graph node and returns a mesh node */
   Node add_node(const Point& position){
-    return Node(this, g_nodes_.add_node(position));
+    return Node(this, g_nodes_.add_node(position,InternalNode()));
   }
 
   /** Add an triangle to the graph, or return the current triangle if it already exists.
@@ -450,52 +455,46 @@ class Mesh {
     assert( g_nodes_.has_node(b.gn_) );
     assert( g_nodes_.has_node(c.gn_) );
 
-   
-   	//Graph::Edge objects
-    auto e1 = g_nodes_.add_edge(a.gn_, b.gn_);
-    auto e2 = g_nodes_.add_edge(b.gn_, c.gn_);
-    auto e3 = g_nodes_.add_edge(a.gn_, c.gn_);
     
+    //TODO: If triangle has already been added, return the Triangle 
+
     //Create Mesh::Edge objects for comparison with existing triangles to create adj_list below
-    edge_type E1 = Edge(this,e1); 
-    edge_type E2 = Edge(this,e2);
-    edge_type E3 = Edge(this,e3);
+    edge_type e1 = Edge(this,g_nodes_.add_edge(a.gn_, b.gn_,InternalEdge())); 
+    edge_type e2 = Edge(this,g_nodes_.add_edge(b.gn_, c.gn_,InternalEdge()));
+    edge_type e3 = Edge(this,g_nodes_.add_edge(a.gn_, c.gn_,InternalEdge()));
     
+	    
     // TODO: we are storing an empty/invalid Point. other options? - I think that's fine, it's really a spaceholder for now.
     auto n = g_triangles_.add_node( Point(), InternalTriangle(a.gn_.index(), b.gn_.index(), c.gn_.index(), value));
 
     // TODO: Find adjacent triangles to this triangle, then call g_triangles_.add_edge() for each adjacent triangle found.
     
-    //Iterate through all triangles. If there is a common edge, they are adjacent.  
+    //Iterate through all triangles. If they are adjacent (have at least one common edge), add edge between triangle nodes.  
 		for (auto it = triangle_begin(); it != triangle_end(); ++it) {
 			auto t = *it; 
-			if (t.edge(0) == E1 || t.edge(0) == E2 || t.edge(0) == E3)
+			if (t.edge(0) == e1 || t.edge(0) == e2 || t.edge(0) == e3)
 				g_triangles_.add_edge(n,g_triangles_.node(t.index()));
-				
-			else{
-				if (t.edge(1) == E1 || t.edge(1) == E2 || t.edge(1) == E3)
+			if (t.edge(1) == e1 || t.edge(1) == e2 || t.edge(1) == e3)
 					g_triangles_.add_edge(n,g_triangles_.node(t.index()));
-			
-				else{				
-					if (t.edge(2) == E1 || t.edge(2) == E2 || t.edge(2) == E3)
+		  if (t.edge(2) == e1 || t.edge(2) == e2 || t.edge(2) == e3)
 						g_triangles_.add_edge(n,g_triangles_.node(t.index()));
-				}
-			}
 		}
-	
-    // TODO: Add idxs of triangles adjacent to the edges of this triangle 
-    // TODO: Add idxs of triangles adjacent to the nodes of this triangle
-    
-    return Triangle(this, a, b, c, g_triangles_.num_nodes()-1);
+		
+		idx_type tri_idx = g_triangles_.num_nodes()-1;
+		
+		//Adding new triangle to the adj_list of the three new edges (make sure this triangle has not been added before!)
+		e1.ge_.value().adj_triangles_.push_back(tri_idx);
+		e2.ge_.value().adj_triangles_.push_back(tri_idx);
+		e3.ge_.value().adj_triangles_.push_back(tri_idx);
+		
+		
+		//Adding new triangle to the adj_list of the three nodes (make sure this triangle has not been added before!)		
+		a.gn_.value().adj_triangles_.push_back(tri_idx);
+ 		b.gn_.value().adj_triangles_.push_back(tri_idx);
+		c.gn_.value().adj_triangles_.push_back(tri_idx);
+			 
+    return Triangle(this, a, b, c, tri_idx);
   };
-
-
-
-
-
-
-
-
 
   ///////////////
   // Iterators //
