@@ -30,4 +30,3 @@ Examples/.deps/
 test
 #test.cpp
 Examples/proxy_example
-Graph.hpp
