@@ -264,13 +264,13 @@ class Mesh {
         return std::tie(m_, ge_) < std::tie(x.m_, x.ge_);
       }
 
-      triangle_type triangle(idx_type i) {
-        assert(i < num_adj_triangles());
-        // TODO: implement
-      }
+      // triangle_type triangle(idx_type i) {
+//         assert(i < num_adj_triangles());
+//         // TODO: implement
+//       }
 
       size_type num_adj_triangles() {
-        // TODO: implement
+        return ge_.value().adj_triangles_.size();
       }
       
       // Return this edge's value.
@@ -357,8 +357,9 @@ class Mesh {
        * and y, exactly one of x == y, x < y, and y < x is true.
        */
       bool operator<(const Triangle& x) const {
-        // TODO: can we just compare triangle idx ?
-        return std::tie(m_, nodes_[0], nodes_[1], nodes_[2]) < std::tie(x.m_, x.node(0), x.node(1), x.node(2));
+        // TODO: can we just compare triangle idx ? - I think so! 
+        return std::tie(idx_,m_) < std::tie(x.idx_,m_);
+        //return std::tie(m_, nodes_[0], nodes_[1], nodes_[2]) < std::tie(x.m_, x.node(0), x.node(1), x.node(2));
       }
 
       /**
@@ -431,7 +432,6 @@ class Mesh {
   void clear() {
     g_nodes_.clear();
     g_triangles_.clear();
-    // TODO: clear mesh data structures
   }
 
 
@@ -449,6 +449,21 @@ class Mesh {
   size_type num_edges() const {
     return g_nodes_.num_edges();
   }
+  
+  
+	/** Return triangle at position i in this Mesh */
+	triangle_type triangle(idx_type i) const {
+		assert(i >= 0 && i < num_triangles());
+	
+		auto n1_idx= g_triangles_.node(i).value().node_idx1;
+		auto n2_idx = g_triangles_.node(i).value().node_idx2;
+		auto n3_idx = g_triangles_.node(i).value().node_idx3;
+	
+		return Triangle(this,Node(this,g_nodes_.node(n1_idx)),Node(this,g_nodes_.node(n2_idx)),Node(this,g_nodes_.node(n3_idx))
+		,i);
+	
+	}
+
 
   /** Stores a graph node and returns a mesh node */
   Node add_node(const Point& position){
@@ -483,13 +498,10 @@ class Mesh {
     edge_type e2 = Edge(this,g_nodes_.add_edge(b.gn_, c.gn_));
     edge_type e3 = Edge(this,g_nodes_.add_edge(a.gn_, c.gn_));
     
-	    
-    // TODO: we are storing an empty/invalid Point. other options? - I think that's fine, it's really a spaceholder for now.
+    //Add node to triangle graph
     auto n = g_triangles_.add_node( Point(), InternalTriangle(a.gn_.index(), b.gn_.index(), c.gn_.index(), value));
 
-    // TODO: Find adjacent triangles to this triangle, then call g_triangles_.add_edge() for each adjacent triangle found.
-    
-    //Iterate through all triangles. If they are adjacent (have at least one common edge), add edge between triangle nodes.  
+	 //Iterate through all triangles. If they are adjacent (have at least one common edge), add edge between triangle nodes.  
 		for (auto it = triangle_begin(); it != triangle_end(); ++it) {
 			auto t = *it; 
 			//Cycle through t's 3 edges and compare with the current triangle's edges. 
@@ -646,8 +658,7 @@ class Mesh {
      * @Return Node object.
      */
     Node operator*() const {
-      // TODO: construct node
-      return Node();
+      return Node(m_,*it_);
     }
 
     /**
@@ -738,8 +749,7 @@ class Mesh {
      * @Return Edge object.
      */
     Edge operator*() const {
-      // TODO: construct edge
-      return Edge();
+      return Edge(m_,*it_);
     }
 
     /**
