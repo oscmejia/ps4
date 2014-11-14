@@ -57,9 +57,9 @@ int main(int argc, char** argv)
 
   auto first = m.triangle_begin();
   triangle_type t1 = *first:
-  assert(ti.node(0).position() == p1 || ti.node(0).position() == p2 || ti.node(0).position() == p3 );
-  assert(ti.node(1).position() == p1 || ti.node(0).position() == p2 || ti.node(0).position() == p3 );
-  assert(ti.node(2).position() == p1 || ti.node(0).position() == p2 || ti.node(0).position() == p3 );
+  assert(t1.node(0).position() == p1 || t1.node(0).position() == p2 || t1.node(0).position() == p3 );
+  assert(t1.node(1).position() == p1 || t1.node(0).position() == p2 || t1.node(0).position() == p3 );
+  assert(t1.node(2).position() == p1 || t1.node(0).position() == p2 || t1.node(0).position() == p3 );
 
   /**
   auto first = m.triangle_begin();
