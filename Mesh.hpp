@@ -234,9 +234,6 @@ class Mesh {
       friend class Mesh;
   };
 
-
-
-
   ////////////////////
   // MESH EDGES     //
   ////////////////////
