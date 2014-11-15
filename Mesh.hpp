@@ -286,6 +286,10 @@ class Mesh {
       	return Node(m_,ge_.node2());
       	};
 
+      double length() const {
+        return ge_.length();
+      }
+
 
     private:
 

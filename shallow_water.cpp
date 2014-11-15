@@ -70,6 +70,7 @@ struct EdgeData {
 
 typedef Mesh<TriData,NodeData,EdgeData> MeshType;
 typedef MeshType::Node node_type;
+typedef MeshType::Edge edge_type;
 typedef MeshType::Triangle triangle_type;
 
 /** Function object for calculating shallow-water flux.
@@ -150,6 +151,16 @@ void post_process(MESH& m) {
   (void) m;
 }
 
+/** Finds the edge with min length */
+bool min_edge_length_func(edge_type e1, edge_type e2) { 
+  return e1.length() < e2.length(); 
+}
+
+/** Finds the node with max height */
+bool max_node_height_func(node_type n1, node_type n2) { 
+  return n1.position().z < n2.position().z; 
+}
+
 
 
 int main(int argc, char* argv[])
@@ -208,12 +219,19 @@ int main(int argc, char* argv[])
   //   we can compute the minimum edge length and maximum original water height
   //   to set the time-step
   // Compute the minimum edge length and maximum water height for computing dt
-#if 0
+  double min_edge_length = (*std::min_element(mesh.edge_begin(), mesh.edge_end(), min_edge_length_func)).length();
+  std::cout << "- min : " << min_edge_length << std::endl;
+
+  double max_height = (*std::max_element(mesh.node_begin(), mesh.node_end(), max_node_height_func)).position().z;
+  std::cout << "- max h : " << max_height << std::endl;
+
+  return 0;
+
+
   double dt = 0.25 * min_edge_length / (sqrt(grav * max_height));
-#else
   // Placeholder!! Delete me when min_edge_length and max_height can be computed!
-  double dt = 0.1;
-#endif
+  //double dt = 0.1;
+
   double t_start = 0;
   double t_end = 10;
 
@@ -227,13 +245,8 @@ int main(int argc, char* argv[])
 
     // Update node values with triangle-averaged values
     post_process(mesh);
-
-    // Update the viewer with new node positions
-    // HW4B: Need to define node_iterators before these can be used!
-#if 0
     viewer.add_nodes(mesh.node_begin(), mesh.node_end(),
                      CS207::DefaultColor(), NodePosition(), node_map);
-#endif
     viewer.set_label(t);
 
     // These lines slow down the animation for small meshes.
