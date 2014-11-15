@@ -203,17 +203,14 @@ int main(int argc, char* argv[])
   CS207::SDLViewer viewer;
   viewer.launch();
 
-  // HW4B: Need to define Mesh::node_type and node/edge iterator
-  // before these can be used!
 
   auto node_map = viewer.empty_node_map(mesh);
   viewer.add_nodes(mesh.node_begin(), mesh.node_end(),
                    CS207::DefaultColor(), NodePosition(), node_map);
   viewer.add_edges(mesh.edge_begin(), mesh.edge_end(), node_map);
-
   viewer.center_view();
 
-  // HW4B: Timestep
+
   // CFL stability condition requires dt <= dx / max|velocity|
   // For the shallow water equations with u = v = 0 initial conditions
   //   we can compute the minimum edge length and maximum original water height
@@ -225,12 +222,11 @@ int main(int argc, char* argv[])
   double max_height = (*std::max_element(mesh.node_begin(), mesh.node_end(), max_node_height_func)).position().z;
   std::cout << "- max h : " << max_height << std::endl;
 
-  return 0;
-
-
   double dt = 0.25 * min_edge_length / (sqrt(grav * max_height));
-  // Placeholder!! Delete me when min_edge_length and max_height can be computed!
-  //double dt = 0.1;
+  std::cout << "- dt : " << dt << std::endl;
+  
+return 0;
+
 
   double t_start = 0;
   double t_end = 10;
