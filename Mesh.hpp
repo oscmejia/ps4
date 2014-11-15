@@ -65,7 +65,6 @@ class Mesh {
   struct InternalNode
   {
     std::vector<idx_type> adj_triangles_;
-    int a;
     node_value_type user_value;
     
     //Constructor with user value
@@ -208,7 +207,7 @@ class Mesh {
        * @return node_incident_iterator
        */
       node_incident_iterator triangle_begin() const {
-        return NodeIncidentIterator(m_, gn_.value(), 0);
+        return NodeIncidentIterator(m_, gn_.index(), 0);
       }
 
       /**
@@ -216,7 +215,7 @@ class Mesh {
        * @return node_incident_iterator
        */
       node_incident_iterator triangle_end() const {
-        return NodeIncidentIterator(m_, gn_.value(), gn_.value().adj_triangles_.size() );
+        return NodeIncidentIterator(m_, gn_.index(), gn_.value().adj_triangles_.size() );
       }
       
       // Return this node's value.
@@ -851,6 +850,89 @@ class Mesh {
   edge_iterator edge_end() const {
     return edge_iterator( this, g_nodes_.edge_end() );
   }
+
+
+  /** @class Mesh::NodeIncidentIterator
+   * @brief Iterator class for adjacnet triangles to a node. A forward iterator. */
+  class NodeIncidentIterator : private totally_ordered<NodeIncidentIterator> {
+
+   public:
+    // These type definitions help us use STL's iterator_traits.
+    /** Element type. */
+    typedef Triangle value_type;
+    /** Type of pointers to elements. */
+    typedef Triangle* pointer;
+    /** Type of references to elements. */
+    typedef Triangle& reference;
+    /** Iterator category. */
+    typedef std::input_iterator_tag iterator_category;
+    /** Difference between iterators */
+    typedef std::ptrdiff_t difference_type;
+
+     /** Construct an invalid NodeIncidentIterator. */
+    NodeIncidentIterator() {
+    }
+
+    /**
+     * Reference operator for NodeIncidentIterator.
+     * Complexity: O(1).
+     *
+     * @Return Triangle object.
+     */
+    Triangle operator*() const {
+
+      // InternalNode
+      auto this_node = m_->g_nodes_.node(node_idx_);
+
+      // InternalTriangle index
+      idx_type this_tri_idx = this_node.value().adj_triangles_[adj_tri_idx_];
+
+      // InternalTriangle
+      auto this_tri = m_->g_triangles_.node(this_tri_idx);
+
+      return Triangle(m_,
+        Node(m_, m_->g_nodes_.node(this_tri.value().node_idx1)),
+        Node(m_, m_->g_nodes_.node(this_tri.value().node_idx2)),
+        Node(m_, m_->g_nodes_.node(this_tri.value().node_idx3)),
+        this_tri_idx);
+    }
+
+    /**
+     * Incremental Operator for NodeIncidentIterator.
+     * Complexity: O(1).
+     *
+     * @Return NodeIncidentIterator object by reference.
+     */
+    NodeIncidentIterator& operator++() {
+      ++adj_tri_idx_;
+      return *this;
+    }
+
+    /**
+     * Equialy Operator for NodeIncidentIterator.
+     * Complexity: O(1).
+     *
+     * @Return bool, true if both NodeIncidentIterator's are equial.
+     */
+    bool operator==(const NodeIncidentIterator& other) const {
+      return std::tie(m_, node_idx_, adj_tri_idx_) == std::tie(other.m_, other.node_idx_, other.adj_tri_idx_);
+    }
+
+   private:
+
+    NodeIncidentIterator(const Mesh* m, idx_type node_idx, idx_type adj_tri_idx)
+        : m_(const_cast<Mesh*>(m)), node_idx_(node_idx), adj_tri_idx_(adj_tri_idx) {
+    }
+
+    /** Reference to the mesh */
+    Mesh* m_;
+    /** Node idx */
+    idx_type node_idx_;
+    /** Triangle idx */
+    idx_type adj_tri_idx_;
+
+    friend class Mesh;
+  };
 
 
  private:

@@ -182,7 +182,7 @@ void post_process(MESH& m) {
     QVar q_k;
     
 			//For each node, calculate the sum of q_k*tri_area for all adj triangles  
-			for (auto t_it = n.triangle_begin(); t_it != n.triangle_begin(); ++t_it) {
+			for (auto t_it = n.triangle_begin(); t_it != n.triangle_end(); ++t_it) {
 				auto t = *t_it;
 				area = area + t.area();  
 				q_k = q_k + (t.area()*t.value().q_bar);
