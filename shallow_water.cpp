@@ -158,6 +158,7 @@ bool min_edge_length_func(edge_type e1, edge_type e2) {
 
 /** Finds the node with max height */
 bool max_node_height_func(node_type n1, node_type n2) { 
+  EdgeFluxCalculator
   return n1.position().z < n2.position().z; 
 }
 
@@ -195,6 +196,8 @@ int main(int argc, char* argv[])
             << mesh.num_edges() << " "
             << mesh.num_triangles() << std::endl;
 
+
+
   // HW4B Initialization
   // Set the initial conditions
   // Perform any needed precomputation
@@ -224,7 +227,7 @@ int main(int argc, char* argv[])
 
   double dt = 0.25 * min_edge_length / (sqrt(grav * max_height));
   std::cout << "- dt : " << dt << std::endl;
-  
+
 return 0;
 
 
