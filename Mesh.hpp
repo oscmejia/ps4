@@ -281,12 +281,15 @@ class Mesh {
       
       node_type node1() {
       	return Node(m_,ge_.node1());
-      	};
+    	};
 
 		  node_type node2() {
       	return Node(m_,ge_.node2());
-      	};
+      };
 
+      double length() const {
+        return ge_.length();
+      }
 
     private:
 
@@ -563,7 +566,6 @@ class Mesh {
 		auto v = a.gn_.value().adj_triangles_;
 		v.push_back(tri_idx);
 		
-		a.gn_.value().a=3;
 	  auto v2= b.gn_.value().adj_triangles_;
 	  v2.push_back(tri_idx);
 	  
