@@ -63,7 +63,7 @@ struct QVar {
 
 /** Custom structure of data to store with Triangles */
 struct TriData {
-  QVar q_bar;  //Q vector for a triangle
+  QVar q_bar;  //Qbar for a triangle
   QVar q_tmp;
 }; 
 
@@ -150,7 +150,7 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
   
   for (auto it = m.triangle_begin(); it != m.triangle_end(); ++it) {
     auto t = *it;
-    QVar fluxes;
+	QVar fluxes;
 
     for(int i = 0; i < 3; ++i){
       auto e = t.edge(i);
@@ -173,6 +173,27 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
 /** Convert the triangle-averaged values to node-averaged values for viewing. */
 template <typename MESH>
 void post_process(MESH& m) {
+
+		//Iterate through all the nodes in the mesh
+	 for (auto it = m.node_begin(); it != m.node_end(); ++it) {
+    auto n = *it; 
+    
+    double area = 0;
+    QVar q_k;
+    
+			//For each node, calculate the sum of q_k*tri_area for all adj triangles  
+			for (auto t_it = n.triangle_begin(); t_it != n.triangle_begin(); ++t_it) {
+				auto t = *t_it;
+				area = area + t.area();  
+				q_k = q_k + (t.area()*t.value().q_bar);
+			}
+			
+			n.value().q = q_k*(1.0 /area);
+  	}
+  	
+  	
+	
+	
   // HW4B: Post-processing step
   // Translate the triangle-averaged values to node-averaged values
   // Implement Equation 9 from your pseudocode here
