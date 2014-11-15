@@ -216,7 +216,7 @@ class Mesh {
        * @return node_incident_iterator
        */
       node_incident_iterator triangle_end() const {
-        void(); //return NodeIncidentIterator(m_, gn_.value(), m_->adj_n2t_[gn_.value()].size() );
+        return NodeIncidentIterator(m_, gn_.value(), gn_.value().adj_triangles_.size() );
       }
       
       // Return this node's value.
@@ -360,7 +360,6 @@ class Mesh {
       	//TODO:  use 3rd node to determine direction of vector! 
       	// either (Point (-dy,dx,0) or Point (dy,-dx,0);
       	
-      
       	return Point(-dy,dx,0);
       	
       }
