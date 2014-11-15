@@ -65,6 +65,7 @@ class Mesh {
   struct InternalNode
   {
     std::vector<idx_type> adj_triangles_;
+    int a;
     node_value_type user_value;
     
     //Constructor with user value
@@ -286,10 +287,6 @@ class Mesh {
       	return Node(m_,ge_.node2());
       	};
 
-      double length() const {
-        return ge_.length();
-      }
-
 
     private:
 
@@ -411,7 +408,7 @@ class Mesh {
        * @return Object of type T by reference as a constant.
        */
       const triangle_value_type& value() const {
-        return m_->g_triangles_.node(idx_).value(); //.value @ the end? 
+        return m_->g_triangles_.node(idx_).value().user_value;
       }
 
 
@@ -563,9 +560,15 @@ class Mesh {
 		//Adding new triangle idx to the adj_list of the three nodes (make sure this triangle has not been added before!)	
 		  
 		 // std::cerr<< "Size is " << a.gn_.value().adj_triangles_.push_back(1) ; //size();	
-		//a.gn_.value().adj_triangles_.push_back(tri_idx);
-		//b.gn_.value().adj_triangles_;//.push_back(tri_idx);
-		//c.gn_.value().adj_triangles_;//.push_back(tri_idx);
+		auto v = a.gn_.value().adj_triangles_;
+		v.push_back(tri_idx);
+		
+		a.gn_.value().a=3;
+	  auto v2= b.gn_.value().adj_triangles_;
+	  v2.push_back(tri_idx);
+	  
+		auto v3=c.gn_.value().adj_triangles_;
+		v3.push_back(tri_idx);
 			 
     return Triangle(this, a, b, c, tri_idx);
   };
