@@ -341,19 +341,19 @@ class Mesh {
       }
 
       /** Accessing outward normal vectors of an edge of a triangle.*/
-      Point normals_vector(const Edge& e) {
+      Point normals_vector( Edge& e) {
       	Point p1 = e.node1().position();
       	Point p2 = e.node2().position();
       	     	
       	int dx = p1.x -p2.x;
       	int dy = p1.y - p2.y; 
       	
-      	node_type n;
+      	//node_type n;
       	
       	//Find 3rd node in triangle
       	for (auto i=0; i<3; i++){
-      		n = node(i);
-      		if (n!= e.node(1) && n!=e.node2())
+      		node_type n = node(i);
+      		if (n!= e.node1() && n!=e.node2())
       			break;
       	}
       	
@@ -367,9 +367,9 @@ class Mesh {
 
       double area() const {
         // http://www.mathopenref.com/coordtrianglearea.html
-        Point a = nodes_[0].point;
-        Point b = nodes_[1].point;
-        Point c = nodes_[2].point;
+        Point a = nodes_[0].position();
+        Point b = nodes_[1].position();
+        Point c = nodes_[2].position();
         return std::abs( ( a.x*(b.y-c.y) + b.x*(c.y-a.y) + c.x*(a.y-b.y) ) / (2) );
       }
 
