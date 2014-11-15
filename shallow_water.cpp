@@ -129,10 +129,10 @@ struct EdgeFluxCalculator {
 struct NodePosition {
   template <typename NODE>
   Point operator()(const NODE& n) {
-    // HW4B: You may change this to plot something other than the
     // positions of the nodes
-    auto value = n.value();
-    return (n.position().x,n.position().y,value.q.h);
+    Point p = n.position();
+    p.z = n.value().q.h;
+    return p;
   }
 };
 

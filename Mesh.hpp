@@ -218,10 +218,19 @@ class Mesh {
         return NodeIncidentIterator(m_, gn_.index(), gn_.value().adj_triangles_.size() );
       }
       
+      
       // Return this node's value.
-      node_value_type& value(){
-      	return gn_.value().user_value;  
+      node_value_type& value() {
+        return gn_.value().user_value;  
       };
+
+      // Return this node's value.
+      node_value_type& value() const {
+        auto value = gn_.value();
+        return value.user_value;  
+      };
+      
+
 
     private:
       Mesh* m_;
