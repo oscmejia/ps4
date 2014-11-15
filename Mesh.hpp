@@ -216,7 +216,7 @@ class Mesh {
        * @return node_incident_iterator
        */
       node_incident_iterator triangle_end() const {
-        return NodeIncidentIterator(m_, gn_.value(), gn_.value().adj_triangles_.size() );
+        return NodeIncidentIterator(m_, gn_.value(), m_->adj_n2t_[gn_.value()].size() );
       }
       
       // Return this node's value.
@@ -234,9 +234,6 @@ class Mesh {
       
       friend class Mesh;
   };
-
-
-
 
   ////////////////////
   // MESH EDGES     //
