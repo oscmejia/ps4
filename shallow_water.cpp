@@ -38,13 +38,17 @@ struct QVar {
   }
   // More operators?
 
-//   QVar operator+(Qvar q){
-//   	return Qvar(h + q.h, hx+q.hx, hy + q.hy);
-//   };
-//   
-//     QVar operator-(Qvar q){
-//   	return Qvar(h - q.h, hx - q.hx, hy - q.hy);
-//   };
+  QVar operator+(QVar q){
+  	return QVar(h + q.h, hx+q.hx, hy + q.hy);
+  };
+  
+    QVar operator-(QVar q){
+  	return QVar(h - q.h, hx - q.hx, hy - q.hy);
+  };
+  
+  QVar operator/(double x){
+  	return QVar(h/x, hx/x, hy/x);
+  };
   
 };
 
@@ -63,15 +67,15 @@ struct NodeData {
    QVar q; //Q vector for a node, average of adj triangles
 };
 
-/** Custom structure of data to store with Nodes */
+/** Custom structure of data to store with Edges */
 struct EdgeData {
   std::vector<QVar> fluxes ;  //vector of up to 2 element with fluxes (Qvars) for adj triangles
 };
 
 typedef Mesh<TriData,NodeData,EdgeData> MeshType;
 typedef MeshType::Node node_type;
-typedef MeshType::Edge edge_type;
 typedef MeshType::Triangle triangle_type;
+
 
 /** Function object for calculating shallow-water flux.
  *          |n
@@ -151,16 +155,6 @@ void post_process(MESH& m) {
   (void) m;
 }
 
-/** Finds the edge with min length */
-bool min_edge_length_func(edge_type e1, edge_type e2) { 
-  return e1.length() < e2.length(); 
-}
-
-/** Finds the node with max height */
-bool max_node_height_func(node_type n1, node_type n2) { 
-  return n1.position().z < n2.position().z; 
-}
-
 
 
 int main(int argc, char* argv[])
@@ -172,14 +166,20 @@ int main(int argc, char* argv[])
   }
 
   MeshType mesh;
-
-  std::vector<node_type> mesh_node;
+  
+  // HW4B: Need node_type before this can be used!
+#if 1
+  std::vector<typename MeshType::node_type> mesh_node;
+#endif
 
   // Read all Points and add them to the Mesh
   std::ifstream nodes_file(argv[1]);
   Point p;
   while (CS207::getline_parsed(nodes_file, p)) {
+    // HW4B: Need to implement add_node before this can be used!
+#if 1
     mesh_node.push_back(mesh.add_node(p));
+#endif
   }
 
   // Read all mesh triangles and add them to the Mesh
@@ -187,7 +187,9 @@ int main(int argc, char* argv[])
   std::array<int,3> t;
   while (CS207::getline_parsed(tris_file, t)) {
     // HW4B: Need to implement add_triangle before this can be used!
+#if 1
     mesh.add_triangle(mesh_node[t[0]], mesh_node[t[1]], mesh_node[t[2]]);
+#endif
   }
 
   // Print out the stats
@@ -198,36 +200,56 @@ int main(int argc, char* argv[])
   // HW4B Initialization
   // Set the initial conditions
   // Perform any needed precomputation
+  
+  /* Set the initial conditions */
+  
+	// Set the initial values of the nodes and get the maximum height double
+	double max_h = 0; 
+	//auto init_cond = DamBreak(); 
+	for (auto it = mesh.node_begin(); it != mesh.node_end(); ++it) { 
+ 	 	auto n = *it;
+ 	 	if (n.position().x <0)
+ 	 		n.value().q = QVar(1.75,0,0); 
+ 	 	else
+ 	 		n.value().q = QVar(1,0,0);  
+
+  	max_h = std::max(max_h, n.value().q.h); 
+	} 
+
+// Set the initial values of the triangles to the average of their nodes
+for (auto it = mesh.triangle_begin(); it != mesh.triangle_end(); ++it) {
+  auto t = *it; 
+  t.value().q_bar = (t.node(0).value().q + 
+                     t.node(1).value().q + 
+                     t.node(2).value().q) / 3.0; 
+}
 
   // Launch the SDLViewer
   CS207::SDLViewer viewer;
   viewer.launch();
 
-
+  // HW4B: Need to define Mesh::node_type and node/edge iterator
+  // before these can be used!
+#if 1
   auto node_map = viewer.empty_node_map(mesh);
   viewer.add_nodes(mesh.node_begin(), mesh.node_end(),
                    CS207::DefaultColor(), NodePosition(), node_map);
   viewer.add_edges(mesh.edge_begin(), mesh.edge_end(), node_map);
+#endif
   viewer.center_view();
 
-
+  // HW4B: Timestep
   // CFL stability condition requires dt <= dx / max|velocity|
   // For the shallow water equations with u = v = 0 initial conditions
   //   we can compute the minimum edge length and maximum original water height
   //   to set the time-step
   // Compute the minimum edge length and maximum water height for computing dt
-  double min_edge_length = (*std::min_element(mesh.edge_begin(), mesh.edge_end(), min_edge_length_func)).length();
-  std::cout << "- min : " << min_edge_length << std::endl;
-
-  double max_height = (*std::max_element(mesh.node_begin(), mesh.node_end(), max_node_height_func)).position().z;
-  std::cout << "- max h : " << max_height << std::endl;
-
+#if 0
   double dt = 0.25 * min_edge_length / (sqrt(grav * max_height));
-  std::cout << "- dt : " << dt << std::endl;
-  
-return 0;
-
-
+#else
+  // Placeholder!! Delete me when min_edge_length and max_height can be computed!
+  double dt = 0.1;
+#endif
   double t_start = 0;
   double t_end = 10;
 
@@ -241,8 +263,13 @@ return 0;
 
     // Update node values with triangle-averaged values
     post_process(mesh);
+
+    // Update the viewer with new node positions
+    // HW4B: Need to define node_iterators before these can be used!
+#if 0
     viewer.add_nodes(mesh.node_begin(), mesh.node_end(),
                      CS207::DefaultColor(), NodePosition(), node_map);
+#endif
     viewer.set_label(t);
 
     // These lines slow down the animation for small meshes.
