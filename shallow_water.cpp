@@ -176,7 +176,7 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
 				t.value().q_bar = t.value().q_bar - sum_fluxes * (dt / t.area())  ;
   }
   
-  
+  //Old implementation!
  //  //Iterate through all triangles and for each edge/adj triangle, update Qbar
 //   for (auto it = m.triangle_begin(); it != m.triangle_end(); ++it) {
 //     auto t = *it;
@@ -203,7 +203,23 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
 /** Convert the triangle-averaged values to node-averaged values for viewing. */
 template <typename MESH>
 void post_process(MESH& m) {
-	
+		//Iterate through all the nodes in the mesh
+	 for (auto it = m.node_begin(); it != m.node_end(); ++it) {
+    auto n = *it; 
+    
+    double area = 0;
+    QVar q_k;
+    
+			//For each node, calculate the sum of q_k*tri_area for all adj triangles  
+			for (auto t_it = n.triangle_begin(); t_it != n.triangle_end(); ++t_it) {
+				auto t = *t_it;
+				area = area + t.area();  
+				q_k = q_k + (t.value().q_bar*t.area());
+			}		
+			n.value().q = q_k*(1.0 /area);
+  	}
+  	
+
   // HW4B: Post-processing step
   // Translate the triangle-averaged values to node-averaged values
   // Implement Equation 9 from your pseudocode here
