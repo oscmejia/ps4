@@ -161,20 +161,14 @@ int main(int argc, char* argv[])
   }
 
   MeshType mesh;
-  
-  // HW4B: Need node_type before this can be used!
-#if 1
-  std::vector<typename MeshType::node_type> mesh_node;
-#endif
+
+  std::vector<node_type> mesh_node;
 
   // Read all Points and add them to the Mesh
   std::ifstream nodes_file(argv[1]);
   Point p;
   while (CS207::getline_parsed(nodes_file, p)) {
-    // HW4B: Need to implement add_node before this can be used!
-#if 1
     mesh_node.push_back(mesh.add_node(p));
-#endif
   }
 
   // Read all mesh triangles and add them to the Mesh
@@ -182,9 +176,7 @@ int main(int argc, char* argv[])
   std::array<int,3> t;
   while (CS207::getline_parsed(tris_file, t)) {
     // HW4B: Need to implement add_triangle before this can be used!
-#if 1
     mesh.add_triangle(mesh_node[t[0]], mesh_node[t[1]], mesh_node[t[2]]);
-#endif
   }
 
   // Print out the stats
@@ -202,12 +194,12 @@ int main(int argc, char* argv[])
 
   // HW4B: Need to define Mesh::node_type and node/edge iterator
   // before these can be used!
-#if 1
+
   auto node_map = viewer.empty_node_map(mesh);
   viewer.add_nodes(mesh.node_begin(), mesh.node_end(),
                    CS207::DefaultColor(), NodePosition(), node_map);
   viewer.add_edges(mesh.edge_begin(), mesh.edge_end(), node_map);
-#endif
+
   viewer.center_view();
 
   // HW4B: Timestep
