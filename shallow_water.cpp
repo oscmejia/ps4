@@ -206,13 +206,9 @@ int main(int argc, char* argv[])
             << mesh.num_triangles() << std::endl;
 
 
-
-  // HW4B Initialization
   // Set the initial conditions
   // Perform any needed precomputation
-  
-  /* Set the initial conditions */
-  
+
 	// Set the initial values of the nodes and get the maximum height double
 	double max_height = 0;
 	auto init_cond = InitialCondition(); 
@@ -247,7 +243,7 @@ int main(int argc, char* argv[])
   viewer.add_edges(mesh.edge_begin(), mesh.edge_end(), node_map);
   viewer.center_view();
 
-  // HW4B: Timestep
+
   // CFL stability condition requires dt <= dx / max|velocity|
   // For the shallow water equations with u = v = 0 initial conditions
   //   we can compute the minimum edge length and maximum original water height
@@ -255,8 +251,6 @@ int main(int argc, char* argv[])
   // Compute the minimum edge length and maximum water height for computing dt
   double dt = 0.25 * min_edge_length / (sqrt(grav * max_height));
   std::cout << "- dt : " << dt << std::endl;
-
-return 0;
 
 
   double t_start = 0;
@@ -274,8 +268,6 @@ return 0;
     post_process(mesh);
 
     // Update the viewer with new node positions
-    // HW4B: Need to define node_iterators before these can be used!
-
     viewer.add_nodes(mesh.node_begin(), mesh.node_end(),
                      CS207::DefaultColor(), NodePosition(), node_map);
     viewer.set_label(t);
