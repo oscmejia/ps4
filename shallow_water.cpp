@@ -37,13 +37,40 @@ struct QVar {
       : h(h_), hx(hx_), hy(hy_) {
   }
   // More operators?
+
+//   QVar operator+(Qvar q){
+//   	return Qvar(h + q.h, hx+q.hx, hy + q.hy);
+//   };
+//   
+//     QVar operator-(Qvar q){
+//   	return Qvar(h - q.h, hx - q.hx, hy - q.hy);
+//   };
+  
 };
 
 // HW4B: Placeholder for Mesh Type!
 // Define NodeData, EdgeData, TriData, etc
 // or redefine for your particular Mesh
-typedef Mesh<int,int,int> MeshType;
 
+
+/** Custom structure of data to store with Triangles */
+struct TriData {
+  QVar q_bar;  //Q vector for a triangle
+}; 
+
+/** Custom structure of data to store with Nodes */
+struct NodeData {
+   QVar q; //Q vector for a node, average of adj triangles
+};
+
+/** Custom structure of data to store with Nodes */
+struct EdgeData {
+  std::vector<QVar> fluxes ;  //vector of up to 2 element with fluxes (Qvars) for adj triangles
+};
+
+typedef Mesh<TriData,NodeData,EdgeData> MeshType;
+typedef MeshType::Node node_type;
+typedef MeshType::Triangle triangle_type;
 
 /** Function object for calculating shallow-water flux.
  *          |n
@@ -134,8 +161,9 @@ int main(int argc, char* argv[])
   }
 
   MeshType mesh;
+  
   // HW4B: Need node_type before this can be used!
-#if 0
+#if 1
   std::vector<typename MeshType::node_type> mesh_node;
 #endif
 
@@ -144,7 +172,7 @@ int main(int argc, char* argv[])
   Point p;
   while (CS207::getline_parsed(nodes_file, p)) {
     // HW4B: Need to implement add_node before this can be used!
-#if 0
+#if 1
     mesh_node.push_back(mesh.add_node(p));
 #endif
   }
@@ -154,7 +182,7 @@ int main(int argc, char* argv[])
   std::array<int,3> t;
   while (CS207::getline_parsed(tris_file, t)) {
     // HW4B: Need to implement add_triangle before this can be used!
-#if 0
+#if 1
     mesh.add_triangle(mesh_node[t[0]], mesh_node[t[1]], mesh_node[t[2]]);
 #endif
   }
@@ -174,7 +202,7 @@ int main(int argc, char* argv[])
 
   // HW4B: Need to define Mesh::node_type and node/edge iterator
   // before these can be used!
-#if 0
+#if 1
   auto node_map = viewer.empty_node_map(mesh);
   viewer.add_nodes(mesh.node_begin(), mesh.node_end(),
                    CS207::DefaultColor(), NodePosition(), node_map);

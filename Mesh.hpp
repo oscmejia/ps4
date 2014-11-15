@@ -194,7 +194,7 @@ class Mesh {
        * and y, exactly one of x == y, x < y, and y < x is true.
        */
       bool operator<(const Node& x) const {
-        return std::tie(gn_.uid_, m_) < std::tie(x.gn_.uid_, x.m_);
+        return std::tie(gn_, m_) < std::tie(x.gn_, x.m_);
       }
       
       //Returns position of current Mesh::Node
@@ -279,7 +279,7 @@ class Mesh {
       };
       
       node_type node1() {
-      	return (m_,ge_.node1());
+      	return Node(m_,ge_.node1());
       	};
 
 		  node_type node2() {
@@ -353,7 +353,10 @@ class Mesh {
       			break;
       	}
       	
-      	//Determining direction of vector
+      	//TODO:  use 3rd node to determine direction of vector! 
+      	// either (Point (-dy,dx,0) or Point (dy,-dx,0);
+      	
+      
       	return Point(-dy,dx,0);
       	
       }
@@ -551,6 +554,8 @@ class Mesh {
 		e2.ge_.value().adj_triangles_.push_back(tri_idx);
 		e3.ge_.value().adj_triangles_.push_back(tri_idx);
 	
+		//TODO : make code below work!
+		
 		//Adding new triangle idx to the adj_list of the three nodes (make sure this triangle has not been added before!)	
 		  
 		 // std::cerr<< "Size is " << a.gn_.value().adj_triangles_.push_back(1) ; //size();	
