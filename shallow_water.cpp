@@ -152,8 +152,10 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
     auto t = *it;
     QVar fluxes;
 
-    for(int x = 0; x < 3; ++x)
-      fluxes = fluxes + f( t.normals_vector(t.edge(x)).x, t.normals_vector(t.edge(x)).y, dt, QVar(), QVar() );
+    for(int i = 0; i < 3; ++i){
+      auto e = t.edge(i);
+      fluxes = fluxes + f( t.normals_vector(e).x, t.normals_vector(e).y, dt, QVar(), QVar() );
+    }
     // TODO: what are the QVar values above???
 
     // TODO: What do you think Carolina? I added q_tmp to TriData
