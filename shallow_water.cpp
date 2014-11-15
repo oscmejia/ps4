@@ -131,7 +131,8 @@ struct NodePosition {
   Point operator()(const NODE& n) {
     // HW4B: You may change this to plot something other than the
     // positions of the nodes
-    return n.position();
+    auto value = n.value();
+    return (n.position().x,n.position().y,value.q.h);
   }
 };
 
@@ -148,24 +149,53 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
   // For each triangle, update Q_bar using the fluxes as in Equation 8.
   // NOTE: Much like symp_euler_step, this may require TWO for-loops
   
-  for (auto it = m.triangle_begin(); it != m.triangle_end(); ++it) {
-    auto t = *it;
-	QVar fluxes;
-
-    for(int i = 0; i < 3; ++i){
-      auto e = t.edge(i);
-      fluxes = fluxes + f( t.normals_vector(e).x, t.normals_vector(e).y, dt, QVar(), QVar() );
-    }
-    // TODO: what are the QVar values above???
-
-    // TODO: What do you think Carolina? I added q_tmp to TriData
-    t.value().q_tmp = t.value().q_bar + fluxes * (dt / t.area())  ;
+  //Iterate through all triangles and compute fluxes for all edges
+  for (auto it = m.triangle_begin(); it != m.triangle_end(); ++it){
+     auto t = *it;
+     
+     //Iterate through triangle's 3 edges
+     for(int i = 0; i < 3; ++i){
+				auto e = t.edge(i);
+				QVar edge_flux=f( t.normals_vector(e).x, t.normals_vector(e).y, dt, t.value().q_bar, e.triangle(1).value().q_bar );
+		 
+			 	//Add flux value to edge 
+			 	e.value().fluxes.push_back(edge_flux); 
+     }
+  
   }
-
-  for (auto it = m.triangle_begin(); it != m.triangle_end(); ++it) {
-    auto t = *it;
-    t.value().q_bar = t.value().q_tmp;
+  
+  //Iterate through all triangles and now update Qbar using fluxes calculated above
+  for (auto it = m.triangle_begin(); it != m.triangle_end(); ++it){
+     auto t = *it;
+     QVar sum_fluxes; 
+     //Iterate through triangle's 3 edges
+     for(int i = 0; i < 3; ++i){
+				auto e = t.edge(i);
+				sum_fluxes = sum_fluxes + e.value().fluxes[0];
+				}
+				t.value().q_bar = t.value().q_bar - sum_fluxes * (dt / t.area())  ;
   }
+  
+  
+ //  //Iterate through all triangles and for each edge/adj triangle, update Qbar
+//   for (auto it = m.triangle_begin(); it != m.triangle_end(); ++it) {
+//     auto t = *it;
+// 	QVar fluxes;
+// 
+//     for(int i = 0; i < 3; ++i){
+//       auto e = t.edge(i);
+//       fluxes = fluxes + f( t.normals_vector(e).x, t.normals_vector(e).y, dt, QVar(), QVar() );
+//     }
+//     // TODO: what are the QVar values above???
+// 
+//     // TODO: What do you think Carolina? I added q_tmp to TriData
+//     t.value().q_tmp = t.value().q_bar + fluxes * (dt / t.area())  ;
+//   }
+// 
+//   for (auto it = m.triangle_begin(); it != m.triangle_end(); ++it) {
+//     auto t = *it;
+//     t.value().q_bar = t.value().q_tmp;
+//   }
 
   return t + dt;
 }
@@ -173,30 +203,27 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
 /** Convert the triangle-averaged values to node-averaged values for viewing. */
 template <typename MESH>
 void post_process(MESH& m) {
-
-		//Iterate through all the nodes in the mesh
-	 for (auto it = m.node_begin(); it != m.node_end(); ++it) {
-    auto n = *it; 
-    
-    double area = 0;
-    QVar q_k;
-    
-			//For each node, calculate the sum of q_k*tri_area for all adj triangles  
-			for (auto t_it = n.triangle_begin(); t_it != n.triangle_begin(); ++t_it) {
-				auto t = *t_it;
-				area = area + t.area();  
-				q_k = q_k + (t.area()*t.value().q_bar);
-			}
-			
-			n.value().q = q_k*(1.0 /area);
-  	}
-  	
-  	
-	
 	
   // HW4B: Post-processing step
   // Translate the triangle-averaged values to node-averaged values
   // Implement Equation 9 from your pseudocode here
+
+		//Iterate through all the nodes in the mesh
+	//  for (auto it = m.node_begin(); it != m.node_end(); ++it) {
+//     auto n = *it; 
+//     
+//     double area = 0;
+//     QVar q_k = QVar();
+//     
+// 			//For each node, calculate the sum of q_k*tri_area for all adj triangles  
+// 			for (auto t_it = n.triangle_begin(); t_it != n.triangle_begin(); ++t_it) {
+// 				auto t = *t_it;
+// 				area = area + t.area();  
+// 				q_k = q_k + (t.area()*t.value().q_bar);
+// 			}
+// 			
+// 			n.value().q = q_k*(1.0 /area);
+//   	}
   (void) m;
 }
 

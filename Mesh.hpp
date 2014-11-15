@@ -262,10 +262,10 @@ class Mesh {
         return std::tie(m_, ge_) < std::tie(x.m_, x.ge_);
       }
 
-      // triangle_type triangle(idx_type i) {
-//         assert(i < num_adj_triangles());
-//         // TODO: implement
-//       }
+      triangle_type triangle(idx_type i) {
+        assert(i < num_adj_triangles());   
+        return m_->triangle(ge_.value().adj_triangles_[i]);
+      }
 
       size_type num_adj_triangles() {
         return ge_.value().adj_triangles_.size();
@@ -338,7 +338,7 @@ class Mesh {
       }
 
       /** Accessing outward normal vectors of an edge of a triangle.*/
-      Point normals_vector( Edge& e) {
+      Point normals_vector(Edge& e) {
       	Point p1 = e.node1().position();
       	Point p2 = e.node2().position();
       	     	
