@@ -49,6 +49,10 @@ struct QVar {
   QVar operator/(double x){
   	return QVar(h/x, hx/x, hy/x);
   };
+
+  QVar operator*(double x){
+    return QVar(h*x, hx*x, hy*x);
+  };
   
 };
 
@@ -60,6 +64,7 @@ struct QVar {
 /** Custom structure of data to store with Triangles */
 struct TriData {
   QVar q_bar;  //Q vector for a triangle
+  QVar q_tmp;
 }; 
 
 /** Custom structure of data to store with Nodes */
@@ -136,14 +141,30 @@ struct NodePosition {
  */
 template <typename MESH, typename FLUX>
 double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
-  // HW4B: YOUR CODE HERE
+  
   // Step the finite volume model in time by dt.
-
   // Pseudocode:
   // Compute all fluxes. (before updating any triangle Q_bars)
   // For each triangle, update Q_bar using the fluxes as in Equation 8.
-  //  NOTE: Much like symp_euler_step, this may require TWO for-loops
-  (void) m; (void) f;
+  // NOTE: Much like symp_euler_step, this may require TWO for-loops
+  
+  for (auto it = m.triangle_begin(); it != m.triangle_end(); ++it) {
+    auto t = *it;
+    QVar fluxes;
+
+    for(int x = 0; x < 3; ++x)
+      fluxes = fluxes + f( t.normals_vector(t.edge(x)).x, t.normals_vector(t.edge(x)).y, dt, QVar(), QVar() );
+    // TODO: what are the QVar values above???
+
+    // TODO: What do you think Carolina? I added q_tmp to TriData
+    t.value().q_tmp = t.value().q_bar + fluxes * (dt / t.area())  ;
+  }
+
+  for (auto it = m.triangle_begin(); it != m.triangle_end(); ++it) {
+    auto t = *it;
+    t.value().q_bar = t.value().q_tmp;
+  }
+
   return t + dt;
 }
 
@@ -207,8 +228,6 @@ int main(int argc, char* argv[])
 
 
   // Set the initial conditions
-  // Perform any needed precomputation
-
 	// Set the initial values of the nodes and get the maximum height double
 	double max_height = 0;
 	auto init_cond = InitialCondition(); 
