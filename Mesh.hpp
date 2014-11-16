@@ -226,7 +226,7 @@ class Mesh {
       // Return this node's value.
       node_value_type& value() const {
         auto value =  gn_.value();
-        const auto uv = value.user_value;
+        auto uv = value.user_value;
         return uv;    
       };
       
@@ -524,7 +524,7 @@ class Mesh {
     //Create Mesh::Edge objects for comparison with existing triangles to create adj_list below
     edge_type e1 = Edge(this,g_nodes_.add_edge(a.gn_, b.gn_)); 
     edge_type e2 = Edge(this,g_nodes_.add_edge(b.gn_, c.gn_));
-    edge_type e3 = Edge(this,g_nodes_.add_edge(a.gn_, c.gn_));
+    edge_type e3 = Edge(this,g_nodes_.add_edge(c.gn_, a.gn_));
     
     //Add node to triangle graph
     auto n = g_triangles_.add_node( Point(), InternalTriangle(a.gn_.index(), b.gn_.index(), c.gn_.index(), value));
