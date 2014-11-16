@@ -206,7 +206,7 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
 					
 					std::cerr << "Edge 0 " <<  tri.edge(0).node1().position() << "  " <<  tri.edge(0).node2().position() <<"\n";
 					std::cerr << "     Adj triangles : " ;
-					for (int i=0; i<tri.edge(0).num_adj_triangles(); ++i)
+					for (unsigned i=0; i<tri.edge(0).num_adj_triangles(); ++i)
 					  std::cerr <<  tri.edge(0).triangle(i).index() << ",";
 					std::cerr << "\n"; 
 					auto e = tri.edge(0);
@@ -227,7 +227,7 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
 					
 					std::cerr << "Edge 1 " <<  tri.edge(1).node1().position() << "  " <<  tri.edge(1).node2().position() <<"\n";
 					std::cerr << "     Adj triangles : " ;
-					for (int i=0; i<tri.edge(1).num_adj_triangles(); ++i)
+					for (unsigned i=0; i<tri.edge(1).num_adj_triangles(); ++i)
 					  std::cerr <<  tri.edge(1).triangle(i).index() << ",";
 					std::cerr << "\n"; 
 					 e = tri.edge(1);
@@ -248,7 +248,7 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
 					
 					std::cerr << "Edge 2 " <<  tri.edge(2).node1().position() << "  " <<  tri.edge(2).node2().position() <<"\n";
 					std::cerr << "     Adj triangles : " ;
-					for (int i=0; i<tri.edge(2).num_adj_triangles(); ++i)
+					for (unsigned i=0; i<tri.edge(2).num_adj_triangles(); ++i)
 					  std::cerr <<  tri.edge(2).triangle(i).index() << ",";
 					std::cerr << "\n"; 
 					 e = tri.edge(2);

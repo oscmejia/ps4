@@ -226,7 +226,7 @@ class Mesh {
       // Return this node's value.
       node_value_type& value() const {
         auto value =  gn_.value();
-        auto uv = value.user_value;
+        const auto uv = value.user_value;
         return uv;    
       };
       
