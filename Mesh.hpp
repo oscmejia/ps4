@@ -342,7 +342,16 @@ class Mesh {
 			//Return edge i, defined as the one opposite node i, i.e composed of the other two nodes in the triangle
       edge_type edge(idx_type i) const {
         assert(i >= 0 && i < 3);
-				return Edge(m_,m_->g_nodes_.add_edge(nodes_[(i+1)% 3].gn_,nodes_[(i+2)% 3].gn_)); 
+				if(i == 0)
+          return Edge(m_, m_->g_nodes_.add_edge(nodes_[0].gn_, nodes_[1].gn_) );
+        
+        if(i == 1)
+          return Edge(m_, m_->g_nodes_.add_edge(nodes_[1].gn_, nodes_[2].gn_) );
+        
+        if(i == 2)
+          return Edge(m_, m_->g_nodes_.add_edge(nodes_[2].gn_, nodes_[0].gn_) );
+        
+        //return Edge(m_, m_->g_nodes_.add_edge(nodes_[(i+1)% 3].gn_,nodes_[(i+2)% 3].gn_)); 
       }
 
       /** Accessing outward normal vectors of an edge of a triangle.*/

@@ -209,11 +209,11 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
         std::cerr << "  Edge " << w << " (" <<  tri.edge(w).node1().position() << ") (" 
                   << tri.edge(w).node2().position() <<")\n";
         std::cerr << "    Normal (" <<  tri.normals_vector( e )  << ")\n";
-  			std::cerr << "    Adj triangles " ;
+  			std::cerr << "    Adj Triangles " ;
           for (unsigned i=0; i<tri.edge(w).num_adj_triangles(); ++i)
             std::cerr <<  tri.edge(w).triangle(i).index() << " ";
           std::cerr << "\n"; ;
-        std::cerr << "    Opposite Tri : " << tri.edge(w).triangle(0).value().q_bar.h 
+        std::cerr << "    Opposite Tri QVar h=" << tri.edge(w).triangle(0).value().q_bar.h 
                   << " hu=" << tri.edge(w).triangle(0).value().q_bar.hx 
                   << " hv=" << tri.edge(w).triangle(0).value().q_bar.hy << " \n";
 
