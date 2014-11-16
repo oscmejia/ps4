@@ -95,8 +95,7 @@ class Mesh {
     //Default Constructor
     InternalEdge() {
     }
-    
-    
+
   };
 
   /** Type of InternalEdge */
@@ -226,9 +225,9 @@ class Mesh {
 
       // Return this node's value.
       node_value_type& value() const {
-        return gn_.value().user_value;  
-        //auto value = gn_.value();
-        //return value.user_value;  
+        auto value =  gn_.value();
+        auto uv = value.user_value;
+        return uv;    
       };
       
 

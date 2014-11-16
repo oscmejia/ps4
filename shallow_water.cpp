@@ -356,7 +356,7 @@ int main(int argc, char* argv[])
   viewer.add_edges(mesh.edge_begin(), mesh.edge_end(), node_map);
   viewer.center_view();
 
-return 0;
+
   // CFL stability condition requires dt <= dx / max|velocity|
   // For the shallow water equations with u = v = 0 initial conditions
   //   we can compute the minimum edge length and maximum original water height
