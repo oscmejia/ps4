@@ -226,8 +226,9 @@ class Mesh {
 
       // Return this node's value.
       node_value_type& value() const {
-        auto value = gn_.value();
-        return value.user_value;  
+        return gn_.value().user_value;  
+        //auto value = gn_.value();
+        //return value.user_value;  
       };
       
 
@@ -366,7 +367,7 @@ class Mesh {
       	
       	//TODO:  use 3rd node to determine direction of vector! 
       	// either (Point (-dy,dx,0) or Point (dy,-dx,0);
-      	
+      	return Point (dy,-dx,0);
       	return Point(-dy,dx,0);
       	
       }

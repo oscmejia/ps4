@@ -156,7 +156,7 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
      auto e = *it;
      
      //Calculate flux for each triangle adjacent to this edge
-     for(int i = 0; i < e.num_adj_triangles(); ++i){ 
+     for(unsigned i = 0; i < e.num_adj_triangles(); ++i){ 
      //Adjacent triangle
      auto tri = e.triangle(i);
      
@@ -204,21 +204,21 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
 					std::cerr << "Edge 0 , node 1 pos :" <<  tri.edge(0).node1().position() << "\n";
 					std::cerr << "Edge 0 , node 2 pos :" <<  tri.edge(0).node2().position() << "\n";
 					std::cerr << "Edge 0 , adj triangles: " ;
-					for (int i=0; i<tri.edge(0).num_adj_triangles(); ++i)
+					for (unsigned i=0; i<tri.edge(0).num_adj_triangles(); ++i)
 					  std::cerr <<  tri.edge(0).triangle(i).index() << ",";
 					std::cerr << "\n"; 
 					
 					std::cerr << "Edge 1 , node 1 pos :" <<  tri.edge(0).node1().position() << "\n";
 					std::cerr << "Edge 1 , node 2 pos :" <<  tri.edge(0).node2().position() << "\n";
 					std::cerr << "Edge 1 , adj triangles: " ;
-					for (int i=0; i<tri.edge(1).num_adj_triangles(); ++i)
+					for (unsigned i=0; i<tri.edge(1).num_adj_triangles(); ++i)
 					  std::cerr <<  tri.edge(1).triangle(i).index() << ",";
 					std::cerr << "\n"; 
 					
 					std::cerr << "Edge 2 , node 1 pos : " <<  tri.edge(2).node1().position() << "\n";
 					std::cerr << "Edge 2 , node 2 pos :" <<  tri.edge(2).node2().position() << "\n";
 					std::cerr << "Edge 2 , adj triangles: " ;
-					for (int i=0; i<tri.edge(2).num_adj_triangles(); ++i)
+					for (unsigned i=0; i<tri.edge(2).num_adj_triangles(); ++i)
 					  std::cerr <<  tri.edge(2).triangle(i).index() << ",";
 					std::cerr << "\n"; 
 					  
@@ -356,7 +356,7 @@ int main(int argc, char* argv[])
   viewer.add_edges(mesh.edge_begin(), mesh.edge_end(), node_map);
   viewer.center_view();
 
-
+return 0;
   // CFL stability condition requires dt <= dx / max|velocity|
   // For the shallow water equations with u = v = 0 initial conditions
   //   we can compute the minimum edge length and maximum original water height
@@ -367,7 +367,7 @@ int main(int argc, char* argv[])
 
 
   double t_start = 0;
-  double t_end = 0.04;
+  double t_end = 10;
 
   // Preconstruct a Flux functor
   EdgeFluxCalculator f;
@@ -388,7 +388,7 @@ int main(int argc, char* argv[])
     // These lines slow down the animation for small meshes.
     // Feel free to remove them or tweak the constants.
     if (mesh.num_nodes() < 100)
-      CS207::sleep(0.05);
+      CS207::sleep(2);
   }
 
   return 0;
