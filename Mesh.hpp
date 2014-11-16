@@ -350,26 +350,10 @@ class Mesh {
       	Point p1 = e.node1().position();
       	Point p2 = e.node2().position();
       	
-    	     	
-      	double dx = p1.x - p2.x;
-      	double dy = p1.y - p2.y; 
+      	Point edge = p1-p2;
       	
-      
-      	//node_type n;
-      	
-      	//Find 3rd node in triangle
-      	for (auto i=0; i<3; i++){
-      		node_type n = node(i);
-      		if (n!= e.node1() && n!=e.node2())
-      			break;
-      	}
-      	
-      	//TODO:  use 3rd node to determine direction of vector! 
-      	// either (Point (-dy,dx,0) or Point (dy,-dx,0);
-      	return Point (dy,-dx,0);
-      	return Point(-dy,dx,0);
-      	
-      }
+      	return cross(edge,Point(0,0,1));
+    	}
 
       double area() const {
         // http://www.mathopenref.com/coordtrianglearea.html
