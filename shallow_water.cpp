@@ -137,6 +137,7 @@ struct NodePosition {
 };
 
 
+
 /** Integrate a hyperbolic conservation law defined over the mesh m
  * with flux functor f by dt in time.
  */
@@ -149,8 +150,6 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
   // For each triangle, update Q_bar using the fluxes as in Equation 8.
   // NOTE: Much like symp_euler_step, this may require TWO for-loops
   
-  
-  
   //Iterate through all edges and compute fluxes for them. 
   //Enforce Boundary Conditions for edges w/ only 1 adjacent triangle
   for (auto it = m.edge_begin(); it != m.edge_end(); ++it){
@@ -161,17 +160,26 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
      //Adjacent triangle
      auto tri = e.triangle(i);
      
+     // std::cerr << "Q_bar for triangle " << tri.index() <<  " on hyperbolic step " << t << " is (" << tri.value().q_bar.h << " , " 
+//       << tri.value().q_bar.hx << "  , "  << tri.value().q_bar.hy << " )\n";
+//      
      QVar boundary_triangle_qbar;
      
       //Boundary Conditions
-     if (e.num_adj_triangles()==1)
-     	boundary_triangle_qbar = QVar(tri.value().q_bar.h,0,0); 
-     else
-     	boundary_triangle_qbar = e.triangle(abs(i-1)).value().q_bar ; 	
+     if (e.num_adj_triangles()==1){
+     		boundary_triangle_qbar = QVar(tri.value().q_bar.h,0,0); 
+			}
+     else{
+     		boundary_triangle_qbar = e.triangle(abs(i-1)).value().q_bar ; 	
+     	}
      
+    
      //Calculate QVar
      QVar edge_flux=f( tri.normals_vector(e).x, tri.normals_vector(e).y, dt, tri.value().q_bar, boundary_triangle_qbar );
 		 
+		//std::cerr << "The edge flux for time  " << t <<  " is (" << edge_flux.h << " , " << edge_flux.hx << "  , "  << edge_flux.hy << " )\n";
+		
+		
 			//Add flux value to edge  - note that edge_flux[i] is relative(outward) to e.triangle(i)
 			e.value().fluxes.push_back(edge_flux);
         
@@ -182,6 +190,39 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
   //Iterate through all triangles and now update Qbar using fluxes calculated above.
   for (auto it = m.triangle_begin(); it != m.triangle_end(); ++it){
      auto tri = *it;
+     
+     //output debugging info
+     //Debugging Info
+					std::cerr << "Time " <<  t << "\n";
+	
+					std::cerr << "Triangle " <<  tri.index() << "\n";
+					std::cerr << "Area " <<  tri.area() << "\n";
+					std::cerr << "Node1 " <<  tri.node(0).position() << "\n";
+					std::cerr << "Node2 " <<  tri.node(1).position() << "\n";
+					std::cerr << "Node3 " <<  tri.node(2).position() << "\n";
+  				std::cerr << "QVar (h,hu,hv) (" <<  tri.value().q_bar.h << " , " <<tri.value().q_bar.hx << "  , "  << tri.value().q_bar.hy << " )\n";
+					std::cerr << "Edge 0 , node 1 pos :" <<  tri.edge(0).node1().position() << "\n";
+					std::cerr << "Edge 0 , node 2 pos :" <<  tri.edge(0).node2().position() << "\n";
+					std::cerr << "Edge 0 , adj triangles: " ;
+					for (int i=0; i<tri.edge(0).num_adj_triangles(); ++i)
+					  std::cerr <<  tri.edge(0).triangle(i).index() << ",";
+					std::cerr << "\n"; 
+					
+					std::cerr << "Edge 1 , node 1 pos :" <<  tri.edge(0).node1().position() << "\n";
+					std::cerr << "Edge 1 , node 2 pos :" <<  tri.edge(0).node2().position() << "\n";
+					std::cerr << "Edge 1 , adj triangles: " ;
+					for (int i=0; i<tri.edge(1).num_adj_triangles(); ++i)
+					  std::cerr <<  tri.edge(1).triangle(i).index() << ",";
+					std::cerr << "\n"; 
+					
+					std::cerr << "Edge 2 , node 1 pos : " <<  tri.edge(2).node1().position() << "\n";
+					std::cerr << "Edge 2 , node 2 pos :" <<  tri.edge(2).node2().position() << "\n";
+					std::cerr << "Edge 2 , adj triangles: " ;
+					for (int i=0; i<tri.edge(2).num_adj_triangles(); ++i)
+					  std::cerr <<  tri.edge(2).triangle(i).index() << ",";
+					std::cerr << "\n"; 
+					  
+     
      QVar sum_fluxes; 
      //Iterate through triangle's 3 edges
      for(int i = 0; i < 3; ++i){
@@ -198,31 +239,7 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
 				}
 				tri.value().q_bar = tri.value().q_bar - sum_fluxes * (dt / tri.area())  ;
 				
-				
-				  //Debugging Info
-				  std::cerr << "Time " <<  t << "\n";
-	
-					std::cerr << "Triangle " <<  tri.index() << "\n";
-					std::cerr << "Area " <<  tri.area() << "\n";
-					std::cerr << "Node1 " <<  tri.node(0).position() << "\n";
-					std::cerr << "Node2 " <<  tri.node(1).position() << "\n";
-					std::cerr << "Node3 " <<  tri.node(2).position() << "\n";
-					
-					
-					std::cerr << "QVar (h,hu,hv) (" <<  tri.value().q_bar.h << " , " <<tri.value().q_bar.hx << "  , "  << tri.value().q_bar.hy << " )\n";
-// 					Edge 0 (nodes 1, node 2)
-// 					adj triangles ind
-// 					Edge 1 (nodes 1, node 2)
-// 					adj triangles ind
-// 					Edge 2 (nodes 1, node 2)
-// 					adj triangles ind
-  
-  
   }
-  
-
-    
-
   return t + dt;
 }
 
@@ -323,6 +340,7 @@ int main(int argc, char* argv[])
     t.value().q_bar = (t.node(0).value().q + 
                        t.node(1).value().q + 
                        t.node(2).value().q) / 3.0; 
+                                    
   }
 
   // Launch the SDLViewer

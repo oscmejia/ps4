@@ -349,10 +349,12 @@ class Mesh {
       Point normals_vector(Edge& e) {
       	Point p1 = e.node1().position();
       	Point p2 = e.node2().position();
-      	     	
-      	int dx = p1.x -p2.x;
-      	int dy = p1.y - p2.y; 
       	
+    	     	
+      	double dx = p1.x - p2.x;
+      	double dy = p1.y - p2.y; 
+      	
+      
       	//node_type n;
       	
       	//Find 3rd node in triangle
