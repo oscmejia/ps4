@@ -156,7 +156,7 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
      auto e = *it;
      
      //Calculate flux for each triangle adjacent to this edge
-     for(int i = 0; i < e.num_adj_triangles(); ++i){ 
+     for(unsigned i = 0; i < e.num_adj_triangles(); ++i){ 
      //Adjacent triangle
      auto tri = e.triangle(i);
      
@@ -211,7 +211,7 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
 					std::cerr << "\n"; 
 					auto e = tri.edge(0);
 					std::cerr << "     Normal : " <<  tri.normals_vector(e)  <<"\n";
-					std::cerr << "     Opposite Triangle QVar : " ;
+					//std::cerr << "     Opposite Triangle QVar : " ;
 					
 					int ind;
 					if (tri == tri.edge(0).triangle(0))
@@ -219,9 +219,11 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
 					else
 						ind = 0;
 						
-					std::cerr <<  tri.edge(0).triangle(ind).value().q_bar.h << ", " ;
-					std::cerr <<  tri.edge(0).triangle(ind).value().q_bar.hx << ", " ;
-					std::cerr <<  tri.edge(0).triangle(ind).value().q_bar.hy << "\n" ;
+					// std::cerr <<  tri.edge(0).triangle(ind).value().q_bar.h << ", " ;
+// 					std::cerr <<  tri.edge(0).triangle(ind).value().q_bar.hx << ", " ;
+// 					std::cerr <<  tri.edge(0).triangle(ind).value().q_bar.hy << "\n" ;
+					
+					//std::cerr << "     Edge/Boundary Flux : " <<  tri.edge(0).value().fluxes[ind]  <<"\n";
 					
 					std::cerr << "Edge 1 " <<  tri.edge(1).node1().position() << "  " <<  tri.edge(1).node2().position() <<"\n";
 					std::cerr << "     Adj triangles : " ;
@@ -230,7 +232,7 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
 					std::cerr << "\n"; 
 					 e = tri.edge(1);
 					std::cerr << "     Normal : " <<  tri.normals_vector(e)  <<"\n";
-					std::cerr << "     Opposite Triangle QVar : " ;
+					//std::cerr << "     Opposite Triangle QVar : " ;
 					
 				
 					if (tri == tri.edge(1).triangle(0))
@@ -238,9 +240,11 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
 					else
 						ind = 0;
 						
-					std::cerr <<  tri.edge(1).triangle(ind).value().q_bar.h << ", " ;
-					std::cerr <<  tri.edge(1).triangle(ind).value().q_bar.hx << ", " ;
-					std::cerr <<  tri.edge(1).triangle(ind).value().q_bar.hy << "\n" ;
+					// std::cerr <<  tri.edge(1).triangle(ind).value().q_bar.h << ", " ;
+// 					std::cerr <<  tri.edge(1).triangle(ind).value().q_bar.hx << ", " ;
+// 					std::cerr <<  tri.edge(1).triangle(ind).value().q_bar.hy << "\n" ;
+// 					
+				//	std::cerr << "     Edge/Boundary Flux : " <<  tri.edge(1).value().fluxes[ind]  <<"\n";
 					
 					std::cerr << "Edge 2 " <<  tri.edge(2).node1().position() << "  " <<  tri.edge(2).node2().position() <<"\n";
 					std::cerr << "     Adj triangles : " ;
@@ -249,7 +253,7 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
 					std::cerr << "\n"; 
 					 e = tri.edge(2);
 					std::cerr << "     Normal : " <<  tri.normals_vector(e)  <<"\n";
-					std::cerr << "     Opposite Triangle QVar : " ;
+				//	std::cerr << "     Opposite Triangle QVar : " ;
 					
 				
 					if (tri == tri.edge(2).triangle(0))
@@ -257,18 +261,19 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
 					else
 						ind = 0;
 						
-					std::cerr <<  tri.edge(2).triangle(ind).value().q_bar.h << ", " ;
-					std::cerr <<  tri.edge(2).triangle(ind).value().q_bar.hx << ", " ;
-					std::cerr <<  tri.edge(2).triangle(ind).value().q_bar.hy << "\n" ;
+					// std::cerr <<  tri.edge(2).triangle(ind).value().q_bar.h << ", " ;
+// 					std::cerr <<  tri.edge(2).triangle(ind).value().q_bar.hx << ", " ;
+// 					std::cerr <<  tri.edge(2).triangle(ind).value().q_bar.hy << "\n" ;
+// 					
+
+			//std::cerr << "     Edge/Boundary Flux : " <<  tri.edge(2).value().fluxes[ind]  <<"\n";
 					
 					
 					
 					
-					//std::cerr << "     Edge/Boundary Flux : " <<  tri.edge(0).value().fluxes[ind]  <<"\n";
 					
 					
-					
-					
+				
      
      QVar sum_fluxes; 
      //Iterate through triangle's 3 edges
@@ -414,7 +419,7 @@ int main(int argc, char* argv[])
 
 
   double t_start = 0;
-  double t_end = 0.04;
+  double t_end = 10;
 
   // Preconstruct a Flux functor
   EdgeFluxCalculator f;
@@ -435,7 +440,7 @@ int main(int argc, char* argv[])
     // These lines slow down the animation for small meshes.
     // Feel free to remove them or tweak the constants.
     if (mesh.num_nodes() < 100)
-      CS207::sleep(0.05);
+      CS207::sleep(2);
   }
 
   return 0;
