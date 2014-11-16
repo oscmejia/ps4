@@ -159,18 +159,18 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
      //Calculate flux for each triangle adjacent to this edge
      for(int i = 0; i < e.num_adj_triangles(); ++i){ 
      //Adjacent triangle
-     auto t = e.triangle(i);
+     auto tri = e.triangle(i);
      
      QVar boundary_triangle_qbar;
      
       //Boundary Conditions
      if (e.num_adj_triangles()==1)
-     	boundary_triangle_qbar = QVar(t.value().q_bar.h,0,0); 
+     	boundary_triangle_qbar = QVar(tri.value().q_bar.h,0,0); 
      else
      	boundary_triangle_qbar = e.triangle(abs(i-1)).value().q_bar ; 	
      
      //Calculate QVar
-     QVar edge_flux=f( t.normals_vector(e).x, t.normals_vector(e).y, dt, t.value().q_bar, boundary_triangle_qbar );
+     QVar edge_flux=f( tri.normals_vector(e).x, tri.normals_vector(e).y, dt, tri.value().q_bar, boundary_triangle_qbar );
 		 
 			//Add flux value to edge  - note that edge_flux[i] is relative(outward) to e.triangle(i)
 			e.value().fluxes.push_back(edge_flux);
@@ -181,23 +181,47 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
  
   //Iterate through all triangles and now update Qbar using fluxes calculated above.
   for (auto it = m.triangle_begin(); it != m.triangle_end(); ++it){
-     auto t = *it;
+     auto tri = *it;
      QVar sum_fluxes; 
      //Iterate through triangle's 3 edges
      for(int i = 0; i < 3; ++i){
-				auto e = t.edge(i);
+				auto e = tri.edge(i);
 				
 				//Figuring out which triangle this corresponds to in edge 
 				int ind;
-				if (t == e.triangle(0))
+				if (tri == e.triangle(0))
 					ind = 0;
 				else
 					ind = 1;
 							
 				sum_fluxes = sum_fluxes + e.value().fluxes[ind];
 				}
-				t.value().q_bar = t.value().q_bar - sum_fluxes * (dt / t.area())  ;
+				tri.value().q_bar = tri.value().q_bar - sum_fluxes * (dt / tri.area())  ;
+				
+				
+				  //Debugging Info
+				  std::cerr << "Time " <<  t << "\n";
+	
+					std::cerr << "Triangle " <<  tri.index() << "\n";
+					std::cerr << "Area " <<  tri.area() << "\n";
+					std::cerr << "Node1 " <<  tri.node(0).position() << "\n";
+					std::cerr << "Node2 " <<  tri.node(1).position() << "\n";
+					std::cerr << "Node3 " <<  tri.node(2).position() << "\n";
+					
+					
+					std::cerr << "QVar (h,hu,hv) (" <<  tri.value().q_bar.h << " , " <<tri.value().q_bar.hx << "  , "  << tri.value().q_bar.hy << " )\n";
+// 					Edge 0 (nodes 1, node 2)
+// 					adj triangles ind
+// 					Edge 1 (nodes 1, node 2)
+// 					adj triangles ind
+// 					Edge 2 (nodes 1, node 2)
+// 					adj triangles ind
+  
+  
   }
+  
+
+    
 
   return t + dt;
 }
@@ -325,7 +349,7 @@ int main(int argc, char* argv[])
 
 
   double t_start = 0;
-  double t_end = 10;
+  double t_end = 0.04;
 
   // Preconstruct a Flux functor
   EdgeFluxCalculator f;
