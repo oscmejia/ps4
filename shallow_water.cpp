@@ -201,27 +201,74 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
 					std::cerr << "Node2 " <<  tri.node(1).position() << "\n";
 					std::cerr << "Node3 " <<  tri.node(2).position() << "\n";
   				std::cerr << "QVar (h,hu,hv) (" <<  tri.value().q_bar.h << " , " <<tri.value().q_bar.hx << "  , "  << tri.value().q_bar.hy << " )\n";
-					std::cerr << "Edge 0 , node 1 pos :" <<  tri.edge(0).node1().position() << "\n";
-					std::cerr << "Edge 0 , node 2 pos :" <<  tri.edge(0).node2().position() << "\n";
-					std::cerr << "Edge 0 , adj triangles: " ;
+					
+					
+					
+					std::cerr << "Edge 0 " <<  tri.edge(0).node1().position() << "  " <<  tri.edge(0).node2().position() <<"\n";
+					std::cerr << "     Adj triangles : " ;
 					for (int i=0; i<tri.edge(0).num_adj_triangles(); ++i)
 					  std::cerr <<  tri.edge(0).triangle(i).index() << ",";
 					std::cerr << "\n"; 
+					auto e = tri.edge(0);
+					std::cerr << "     Normal : " <<  tri.normals_vector(e)  <<"\n";
+					std::cerr << "     Opposite Triangle QVar : " ;
 					
-					std::cerr << "Edge 1 , node 1 pos :" <<  tri.edge(0).node1().position() << "\n";
-					std::cerr << "Edge 1 , node 2 pos :" <<  tri.edge(0).node2().position() << "\n";
-					std::cerr << "Edge 1 , adj triangles: " ;
+					int ind;
+					if (tri == tri.edge(0).triangle(0))
+						ind = 1;
+					else
+						ind = 0;
+						
+					std::cerr <<  tri.edge(0).triangle(ind).value().q_bar.h << ", " ;
+					std::cerr <<  tri.edge(0).triangle(ind).value().q_bar.hx << ", " ;
+					std::cerr <<  tri.edge(0).triangle(ind).value().q_bar.hy << "\n" ;
+					
+					std::cerr << "Edge 1 " <<  tri.edge(1).node1().position() << "  " <<  tri.edge(1).node2().position() <<"\n";
+					std::cerr << "     Adj triangles : " ;
 					for (int i=0; i<tri.edge(1).num_adj_triangles(); ++i)
 					  std::cerr <<  tri.edge(1).triangle(i).index() << ",";
 					std::cerr << "\n"; 
+					 e = tri.edge(1);
+					std::cerr << "     Normal : " <<  tri.normals_vector(e)  <<"\n";
+					std::cerr << "     Opposite Triangle QVar : " ;
 					
-					std::cerr << "Edge 2 , node 1 pos : " <<  tri.edge(2).node1().position() << "\n";
-					std::cerr << "Edge 2 , node 2 pos :" <<  tri.edge(2).node2().position() << "\n";
-					std::cerr << "Edge 2 , adj triangles: " ;
+				
+					if (tri == tri.edge(1).triangle(0))
+						ind = 1;
+					else
+						ind = 0;
+						
+					std::cerr <<  tri.edge(1).triangle(ind).value().q_bar.h << ", " ;
+					std::cerr <<  tri.edge(1).triangle(ind).value().q_bar.hx << ", " ;
+					std::cerr <<  tri.edge(1).triangle(ind).value().q_bar.hy << "\n" ;
+					
+					std::cerr << "Edge 2 " <<  tri.edge(2).node1().position() << "  " <<  tri.edge(2).node2().position() <<"\n";
+					std::cerr << "     Adj triangles : " ;
 					for (int i=0; i<tri.edge(2).num_adj_triangles(); ++i)
 					  std::cerr <<  tri.edge(2).triangle(i).index() << ",";
 					std::cerr << "\n"; 
-					  
+					 e = tri.edge(2);
+					std::cerr << "     Normal : " <<  tri.normals_vector(e)  <<"\n";
+					std::cerr << "     Opposite Triangle QVar : " ;
+					
+				
+					if (tri == tri.edge(2).triangle(0))
+						ind = 1;
+					else
+						ind = 0;
+						
+					std::cerr <<  tri.edge(2).triangle(ind).value().q_bar.h << ", " ;
+					std::cerr <<  tri.edge(2).triangle(ind).value().q_bar.hx << ", " ;
+					std::cerr <<  tri.edge(2).triangle(ind).value().q_bar.hy << "\n" ;
+					
+					
+					
+					
+					//std::cerr << "     Edge/Boundary Flux : " <<  tri.edge(0).value().fluxes[ind]  <<"\n";
+					
+					
+					
+					
      
      QVar sum_fluxes; 
      //Iterate through triangle's 3 edges
