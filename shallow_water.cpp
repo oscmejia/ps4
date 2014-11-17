@@ -288,9 +288,9 @@ bool min_edge_length_func(edge_type e1, edge_type e2) {
 struct InitialCondition {
   QVar operator()(const Point p){
     if (p.x < 0)
-      return QVar(1.75,0,0); 
+      return QVar(1.75, 0, 0); 
     
-    return QVar(1,0,0);  
+    return QVar(1, 0, 0);  
   }
 };
 
@@ -304,8 +304,6 @@ int main(int argc, char* argv[])
   }
 
   MeshType mesh;
-  
-  // HW4B: Need node_type before this can be used!
   std::vector<node_type> mesh_node;
 
   // Read all Points and add them to the Mesh
@@ -328,7 +326,6 @@ int main(int argc, char* argv[])
             << mesh.num_triangles() << std::endl;
 
 
-  // Set the initial conditions
 	// Set the initial values of the nodes and get the maximum height double
 	double max_height = 0;
 	auto init_cond = InitialCondition(); 
@@ -337,27 +334,24 @@ int main(int argc, char* argv[])
     n.value().q = init_cond(n.position());
   	max_height = std::max(max_height, n.value().q.h); 
 	}
-  std::cout << "- max h: " << max_height << std::endl;
+  std::cout << "- max height: " << max_height << std::endl;
 
   double min_edge_length = (*std::min_element(mesh.edge_begin(), mesh.edge_end(), min_edge_length_func)).length();
   std::cout << "- min length: " << min_edge_length << std::endl;
 
   // Set the initial values of the triangles to the average of their nodes
   for (auto it = mesh.triangle_begin(); it != mesh.triangle_end(); ++it) {
-    auto t = *it; 
-    t.value().q_bar = (t.node(0).value().q + 
-                       t.node(1).value().q + 
-                       t.node(2).value().q) / 3.0; 
-                                    
+    auto t = *it;
+    t.value().q_bar = (t.node(0).value().q +
+                       t.node(1).value().q +
+                       t.node(2).value().q) / 3.0;                                 
   }
 
   // Launch the SDLViewer
   CS207::SDLViewer viewer;
   viewer.launch();
 
-  // HW4B: Need to define Mesh::node_type and node/edge iterator
-  // before these can be used!
-
+  /** Add nodes and edges to viewer */
   auto node_map = viewer.empty_node_map(mesh);
   viewer.add_nodes(mesh.node_begin(), mesh.node_end(),
                    CS207::DefaultColor(), NodePosition(), node_map);
@@ -371,9 +365,10 @@ int main(int argc, char* argv[])
   //   to set the time-step
   // Compute the minimum edge length and maximum water height for computing dt
   double dt = 0.25 * min_edge_length / (sqrt(grav * max_height));
-  std::cout << "- dt : " << dt << std::endl;
+  std::cout << "- dt: " << dt << std::endl;
 
 
+  /** Time variables */
   double t_start = 0;
   double t_end = 10;
 
@@ -396,7 +391,7 @@ int main(int argc, char* argv[])
     // These lines slow down the animation for small meshes.
     // Feel free to remove them or tweak the constants.
     if (mesh.num_nodes() < 100)
-      CS207::sleep(1);
+      CS207::sleep(2);
   }
 
   return 0;
