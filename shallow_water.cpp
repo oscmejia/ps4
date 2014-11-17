@@ -143,80 +143,10 @@ struct NodePosition {
 };
 
 
-
-/** Integrate a hyperbolic conservation law defined over the mesh m
- * with flux functor f by dt in time.
- */
-template <typename MESH, typename FLUX>
-double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
-
-  // Step the finite volume model in time by dt.
-  // Pseudocode:
-  // Compute all fluxes. (before updating any triangle Q_bars)
-  // For each triangle, update Q_bar using the fluxes as in Equation 8.
-  // NOTE: Much like symp_euler_step, this may require TWO for-loops
-  
-  //Iterate through all edges and compute fluxes for them. 
-  //Enforce Boundary Conditions for edges w/ only 1 adjacent triangle
-  for (auto it = m.edge_begin(); it != m.edge_end(); ++it) {
-    auto e = *it;
-
-    // TODO: I'm calling clear() here. ok?
-    e.value().fluxes.clear(); 
-    //Calculate flux for each triangle adjacent to this edge
-    for(unsigned i = 0; i < e.num_adj_triangles(); ++i){ 
-      
-      //Adjacent triangle
-      auto tri = e.triangle(i);
-        
-      QVar boundary_triangle_qbar;
-     
-      //Boundary Conditions
-      if (e.num_adj_triangles() == 1)
-     		boundary_triangle_qbar = QVar(tri.value().q_bar.h, 0, 0); 
-      else
-     		boundary_triangle_qbar = e.triangle(abs(i-1)).value().q_bar ; 	
-
-      //Calculate QVar
-      QVar edge_flux = f( tri.normals_vector(e).x, 
-                          tri.normals_vector(e).y, 
-                          dt, 
-                          tri.value().q_bar, 
-                          boundary_triangle_qbar );
-		 
-			// Add flux value to edge - note that edge_flux[i] is relative(outward) to e.triangle(i)
-      // TODO: do we need to empty the fluxes vector before every iteration? 
-			e.value().fluxes.push_back(edge_flux);
-        
-    }
-  }
-  
-  
-  //Iterate through all triangles and now update Qbar using fluxes calculated above.
+template <typename MESH>
+void output_debuging_info(MESH& m, double t) {
   for (auto it = m.triangle_begin(); it != m.triangle_end(); ++it){
     auto tri = *it;
-    
-    QVar sum_fluxes; 
-    //Iterate through triangle's 3 edges
-    for(int i = 0; i < 3; ++i){
-      auto e = tri.edge(i);
-      
-      //Figuring out which triangle this corresponds to in edge 
-      int ind;
-      if (tri == e.triangle(0))
-        ind = 0;
-      else
-        ind = 1;
-            
-      sum_fluxes = sum_fluxes + e.value().fluxes[ind];
-    }
-      
-    tri.value().q_bar = tri.value().q_bar - sum_fluxes * (dt / tri.area())  ;
-
-
-    //output debugging info
-    //Debugging Info
-
     std::cerr << "Triangle " <<  tri.index() << " @" << t << "\n";
     std::cerr << "  Area " <<  tri.area() << "\n";
     std::cerr << "  Node positions (" <<  tri.node(0).position() << ")"
@@ -254,18 +184,89 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
       std::cerr << " flux h=" << e.value().total_flux().h
                 << " hu=" << e.value().total_flux().hx 
                 << " hv=" << e.value().total_flux().hy <<  "\n";**/
-      
     }
-
     std::cerr << "\n";
+  }
+}
 
+/** Integrate a hyperbolic conservation law defined over the mesh m
+ * with flux functor f by dt in time.
+ */
+template <typename MESH, typename FLUX>
+double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
+
+  // Step the finite volume model in time by dt.
+  // Pseudocode:
+  // Compute all fluxes. (before updating any triangle Q_bars)
+  // For each triangle, update Q_bar using the fluxes as in Equation 8.
+  // NOTE: Much like symp_euler_step, this may require TWO for-loops
+  
+  //Iterate through all edges and compute fluxes for them. 
+  //Enforce Boundary Conditions for edges w/ only 1 adjacent triangle
+  for (auto it = m.edge_begin(); it != m.edge_end(); ++it) {
+    auto e = *it;
+
+    // TODO: I'm calling clear() here. ok?
+    e.value().fluxes.clear(); 
+
+    //Calculate flux for each triangle adjacent to this edge
+    for(unsigned i = 0; i < e.num_adj_triangles(); ++i){ 
+      
+      //Adjacent triangle
+      auto tri = e.triangle(i);
+        
+      
+     
+      //Boundary Conditions
+      QVar boundary_triangle_qbar;
+      if (e.num_adj_triangles() == 1)
+     		boundary_triangle_qbar = QVar(tri.value().q_bar.h, 0, 0); 
+      else
+     		boundary_triangle_qbar = e.triangle(abs(i-1)).value().q_bar ; 	
+
+      //Calculate QVar
+      QVar edge_flux = f( tri.normals_vector(e).x, 
+                          tri.normals_vector(e).y, 
+                          dt, 
+                          tri.value().q_bar, 
+                          boundary_triangle_qbar );
+		 
+			// Add flux value to edge - note that edge_flux[i] is relative(outward) to e.triangle(i)
+      // TODO: do we need to empty the fluxes vector before every iteration? 
+			e.value().fluxes.push_back(edge_flux);  
+    }
+  }
+  
+  output_debuging_info(m, t);
+
+  //Iterate through all triangles and now update Qbar using fluxes calculated above.
+  for (auto it = m.triangle_begin(); it != m.triangle_end(); ++it){
+    auto tri = *it;
     
+    QVar sum_fluxes; 
+    //Iterate through triangle's 3 edges
+    for(int i = 0; i < 3; ++i){
+      auto e = tri.edge(i);
+      
+      //Figuring out which triangle this corresponds to in edge 
+      int ind;
+      if (tri == e.triangle(0))
+        ind = 0;
+      else
+        ind = 1;
+            
+      sum_fluxes = sum_fluxes + e.value().fluxes[ind];
+    }
+    
+    // Equiation 8
+    tri.value().q_bar = tri.value().q_bar - sum_fluxes * (dt / tri.area());
   }
   
   return t + dt;
 }
 
-  // HW4B: Post-processing step
+
+
   // Translate the triangle-averaged values to node-averaged values
   // Implement Equation 9 from your pseudocode here
 
@@ -273,23 +274,20 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
 /** Convert the triangle-averaged values to node-averaged values for viewing. */
 template <typename MESH>
 void post_process(MESH& m) {
-		//Iterate through all the nodes in the mesh
-	 for (auto it = m.node_begin(); it != m.node_end(); ++it) {
-    auto n = *it; 
-    
+	//Iterate through all the nodes in the mesh
+	for (auto it = m.node_begin(); it != m.node_end(); ++it) {
+    auto n = *it;  
     double area = 0;
     QVar q_k;
     
-			//For each node, calculate the sum of q_k*tri_area for all adj triangles  
-			for (auto t_it = n.triangle_begin(); t_it != n.triangle_end(); ++t_it) {
-				auto t = *t_it;
-				area = area + t.area();  
-				q_k = q_k + (t.value().q_bar*t.area());
-			}		
-			n.value().q = q_k*(1.0 /area);
-  	}
-  	
-  //(void) m;
+		//For each node, calculate the sum of q_k*tri_area for all adj triangles  
+		for (auto t_it = n.triangle_begin(); t_it != n.triangle_end(); ++t_it) {
+			auto t = *t_it;
+			area = area + t.area();  
+			q_k = q_k + (t.value().q_bar * t.area());
+		}		
+		n.value().q = q_k*(1.0 / area);
+  }
 }
 
 
