@@ -167,6 +167,10 @@ class Mesh {
   // MESH NODES     //
   ////////////////////
   
+  /** @class Mesh::Node
+   * @brief Class representing mesh's nodes.
+   *
+   */
   class Node : public totally_ordered<Node>  {
     public:
 
@@ -237,10 +241,15 @@ class Mesh {
       friend class Mesh;
   };
 
+
   ////////////////////
   // MESH EDGES     //
   ////////////////////
   
+  /** @class Mesh::Edge
+   * @brief Class representing mesh's edges.
+   *
+   */
   class Edge : public totally_ordered<Edge>  {
     public:
 
@@ -304,7 +313,6 @@ class Mesh {
       
       friend class Mesh;
   };
-
 
 
   ////////////////////
@@ -427,7 +435,6 @@ class Mesh {
       idx_type idx_;
 
       friend class Mesh;
-
   };
 
 
@@ -476,12 +483,11 @@ class Mesh {
       Node(this,g_nodes_.node(n2_idx)),
       Node(this,g_nodes_.node(n3_idx)),
       i);
-	
 	}
 
 
   /** Stores a graph node and returns a mesh node */
-  Node add_node(const Point& position){
+  Node add_node(const Point& position) {
     return Node(this, g_nodes_.add_node(position));
   }
 
@@ -551,7 +557,7 @@ class Mesh {
 		v3.push_back(tri_idx);
 			 
     return Triangle(this, a, b, c, tri_idx);
-  };
+  }
 
   ///////////////
   // Iterators //
