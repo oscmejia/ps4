@@ -361,7 +361,11 @@ class Mesh {
       	
       	Point edge = p1-p2;
       	
-      	return cross(edge, Point(0,0,1));
+        return Point( edge.y - edge.z,
+                      -edge.x,
+                      0);
+
+      	///return cross(edge, Point(0,0,1));
     	}
 
       double area() const {
