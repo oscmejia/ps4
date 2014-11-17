@@ -160,6 +160,8 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
   //Enforce Boundary Conditions for edges w/ only 1 adjacent triangle
   for (auto it = m.edge_begin(); it != m.edge_end(); ++it) {
     auto e = *it;
+
+    // TODO: I'm calling clear() here. ok?
     e.value().fluxes.clear(); 
     //Calculate flux for each triangle adjacent to this edge
     for(unsigned i = 0; i < e.num_adj_triangles(); ++i){ 
@@ -174,7 +176,7 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
      		boundary_triangle_qbar = QVar(tri.value().q_bar.h, 0, 0); 
       else
      		boundary_triangle_qbar = e.triangle(abs(i-1)).value().q_bar ; 	
-    
+
       //Calculate QVar
       QVar edge_flux = f( tri.normals_vector(e).x, 
                           tri.normals_vector(e).y, 
@@ -192,70 +194,72 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
   
   //Iterate through all triangles and now update Qbar using fluxes calculated above.
   for (auto it = m.triangle_begin(); it != m.triangle_end(); ++it){
-     auto tri = *it;
-     
-     //output debugging info
-     //Debugging Info
+    auto tri = *it;
+    
+    QVar sum_fluxes; 
+    //Iterate through triangle's 3 edges
+    for(int i = 0; i < 3; ++i){
+      auto e = tri.edge(i);
       
-      std::cerr << "Triangle " <<  tri.index() << " @" << t << "\n";
-      std::cerr << "  Area " <<  tri.area() << "\n";
-      std::cerr << "  Node positions (" <<  tri.node(0).position() << ")"
-                << " (" <<  tri.node(1).position() << ")"
-                << " (" <<  tri.node(2).position() << ")" << "\n";
-      std::cerr << "  Triangle QVar [Q_bar, water column characteristics] h=" <<  tri.value().q_bar.h 
-                << " hu=" << tri.value().q_bar.hx 
-                << " hv=" << tri.value().q_bar.hy << " \n";
+      //Figuring out which triangle this corresponds to in edge 
+      int ind;
+      if (tri == e.triangle(0))
+        ind = 0;
+      else
+        ind = 1;
+            
+      sum_fluxes = sum_fluxes + e.value().fluxes[ind];
+    }
       
-      // Edge Info
-      for(int w = 0; w < 3; ++w){
-        auto e = tri.edge(w);
-        std::cerr << "  Edge " << w << " (" <<  tri.edge(w).node1().position() << ") (" 
-                  << tri.edge(w).node2().position() <<")\n";
-        std::cerr << "    Normal (" <<  tri.normals_vector( e )  << ")\n";
-        std::cerr << "    Adj Triangles " ;
-          for (unsigned i=0; i<tri.edge(w).num_adj_triangles(); ++i)
-            std::cerr <<  tri.edge(w).triangle(i).index() << " ";
-          std::cerr << "\n"; ;
-        std::cerr << "    Opposite Tri QVar h=" << tri.edge(w).triangle(0).value().q_bar.h 
-                  << "  hu=" << tri.edge(w).triangle(0).value().q_bar.hx 
-                  << " hv=" << tri.edge(w).triangle(0).value().q_bar.hy << " \n";
+    tri.value().q_bar = tri.value().q_bar - sum_fluxes * (dt / tri.area())  ;
 
-        if(e.num_adj_triangles() == 1)
-          std::cerr << "    Boundary";
-        else
-          std::cerr << "    Edge";
-        
-        std::cerr << " flux h=" << e.value().fluxes[0].h
-                  << " hu=" << e.value().fluxes[0].hx 
-                  << " hv=" << e.value().fluxes[0].hy <<  "\n";
-        /**
-        std::cerr << " flux h=" << e.value().total_flux().h
-                  << " hu=" << e.value().total_flux().hx 
-                  << " hv=" << e.value().total_flux().hy <<  "\n";**/
-        
-      }
 
-      std::cerr << "\n";
-          
-          
-        
-     
-     QVar sum_fluxes; 
-     //Iterate through triangle's 3 edges
-     for(int i = 0; i < 3; ++i){
-        auto e = tri.edge(i);
-        
-        //Figuring out which triangle this corresponds to in edge 
-        int ind;
-        if (tri == e.triangle(0))
-          ind = 0;
-        else
-          ind = 1;
-              
-        sum_fluxes = sum_fluxes + e.value().fluxes[ind];
-        }
-        tri.value().q_bar = tri.value().q_bar - sum_fluxes * (dt / tri.area())  ;
-        
+    //output debugging info
+    //Debugging Info
+
+    std::cerr << "Triangle " <<  tri.index() << " @" << t << "\n";
+    std::cerr << "  Area " <<  tri.area() << "\n";
+    std::cerr << "  Node positions (" <<  tri.node(0).position() << ")"
+              << " (" <<  tri.node(1).position() << ")"
+              << " (" <<  tri.node(2).position() << ")" << "\n";
+    std::cerr << "  Triangle QVar [Q_bar, water column characteristics] h=" <<  tri.value().q_bar.h 
+              << " hu=" << tri.value().q_bar.hx 
+              << " hv=" << tri.value().q_bar.hy << " \n";
+
+    // Edge Info
+    for(int w = 0; w < 3; ++w){
+      auto e = tri.edge(w);
+      std::cerr << "  Edge " << w << " (" <<  tri.edge(w).node1().position() << ") (" 
+                << tri.edge(w).node2().position() <<")\n";
+      std::cerr << "    Normal (" <<  tri.normals_vector( e )  << ")\n";
+      std::cerr << "    Adj Triangles " ;
+        for (unsigned i=0; i<tri.edge(w).num_adj_triangles(); ++i)
+          std::cerr <<  tri.edge(w).triangle(i).index() << " ";
+        std::cerr << "\n"; ;
+      std::cerr << "    Opposite Tri QVar h=" << tri.edge(w).triangle(0).value().q_bar.h 
+                << "  hu=" << tri.edge(w).triangle(0).value().q_bar.hx 
+                << " hv=" << tri.edge(w).triangle(0).value().q_bar.hy << " \n";
+
+      if(e.num_adj_triangles() == 1)
+        std::cerr << "    Boundary";
+      else
+        std::cerr << "    Edge";
+      
+      std::cerr << " flux h=" << e.value().fluxes[0].h
+                << " hu=" << e.value().fluxes[0].hx 
+                << " hv=" << e.value().fluxes[0].hy <<  "\n";
+      /**
+      // TODO: should we account for all fluxes in the fluxes vector?
+      // I tried it, but the totals are different than Chris' values
+      std::cerr << " flux h=" << e.value().total_flux().h
+                << " hu=" << e.value().total_flux().hx 
+                << " hv=" << e.value().total_flux().hy <<  "\n";**/
+      
+    }
+
+    std::cerr << "\n";
+
+    
   }
   
   return t + dt;
