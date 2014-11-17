@@ -199,7 +199,7 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
 			std::cerr << "  Node positions (" <<  tri.node(0).position() << ")"
                 << " (" <<  tri.node(1).position() << ")"
                 << " (" <<  tri.node(2).position() << ")" << "\n";
-			std::cerr << "  Triangle QVar [h,hu,hv] h=" <<  tri.value().q_bar.h 
+			std::cerr << "  Triangle QVar [Q_bar, water column characteristics] h=" <<  tri.value().q_bar.h 
                 << " hu=" << tri.value().q_bar.hx 
                 << " hv=" << tri.value().q_bar.hy << " \n";
 			
@@ -214,11 +214,14 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
             std::cerr <<  tri.edge(w).triangle(i).index() << " ";
           std::cerr << "\n"; ;
         std::cerr << "    Opposite Tri QVar h=" << tri.edge(w).triangle(0).value().q_bar.h 
-                  << " hu=" << tri.edge(w).triangle(0).value().q_bar.hx 
+                  << "  hu=" << tri.edge(w).triangle(0).value().q_bar.hx 
                   << " hv=" << tri.edge(w).triangle(0).value().q_bar.hy << " \n";
 
-
-        std::cerr << "    Edge flux h=" << e.value().fluxes[0].h
+        if(e.num_adj_triangles() == 1)
+          std::cerr << "    Boundary";
+        else
+          std::cerr << "    Edge";
+        std::cerr << " flux h=" << e.value().fluxes[0].h
                   << " hu=" << e.value().fluxes[0].hx 
                   << " hv=" << e.value().fluxes[0].hy <<  "\n";
       }
