@@ -43,31 +43,26 @@ class Mesh {
 
 
   /** @struct InternalTriangle */
-  struct InternalTriangle
-  {
+  struct InternalTriangle {
     idx_type node_idx1;
     idx_type node_idx2;
     idx_type node_idx3;
-    //idx_type center_idx;
     triangle_value_type user_value;
     
-
     InternalTriangle(idx_type node_idx1, idx_type node_idx2, idx_type node_idx3, triangle_value_type value) 
       : node_idx1(node_idx1), node_idx2(node_idx2), node_idx3(node_idx3), user_value(value) {
     }
-
   };
   /** Type of InternalTriangle */
   typedef InternalTriangle internal_triangle;
 
   
   /** Def of InternalNode */
-  struct InternalNode
-  {
+  struct InternalNode {
     std::vector<idx_type> adj_triangles_;
     node_value_type user_value;
     
-    //Constructor with user value
+    /** Constructor with user value */
     InternalNode(node_value_type value) 
       : user_value(value) {
     }
@@ -75,29 +70,25 @@ class Mesh {
     //Default Constructor
     InternalNode() {
     }
-    
   };
   /** Type of InternalNode */
   typedef InternalNode internal_node;
 
 
   /** Def of InternalEdge */
-  struct InternalEdge
-  {
+  struct InternalEdge {
     std::vector<idx_type> adj_triangles_;
     edge_value_type user_value;
     
-  	//Constructor with user value
+  	/** Constructor with user value */
     InternalEdge(node_value_type value) 
       : user_value(value) {
     }
     
-    //Default Constructor
+    /** Default Constructor */
     InternalEdge() {
     }
-
   };
-
   /** Type of InternalEdge */
   typedef InternalEdge internal_edge;
 
@@ -112,7 +103,9 @@ class Mesh {
   typedef Graph<internal_triangle, int> GraphTriangleType;
 
 
+  /** Type of node incident iterators, which iterate over all triangles adjacent to a node. */
   class NodeIncidentIterator;
+  /** Synonym for NodeIncidentIterator */
   typedef NodeIncidentIterator node_incident_iterator;
 
 
@@ -138,6 +131,7 @@ class Mesh {
   class Triangle;
   /** Type of Mesh Triangle*/
   typedef Triangle triangle_type;
+
 
   /** Mesh Node*/
   class Node;
@@ -329,9 +323,9 @@ class Mesh {
       }
       
       /** Return this triangles's index, a number in the range [0, num_triangles). */
-     size_type index() const {
-      return idx_;
-    }
+      size_type index() const {
+        return idx_;
+      }
 
       /** Return node at position i in this Triangle */
       node_type node(idx_type i) const {
@@ -342,6 +336,8 @@ class Mesh {
 			//Return edge i, defined as the one opposite node i, i.e composed of the other two nodes in the triangle
       edge_type edge(idx_type i) const {
         assert(i >= 0 && i < 3);
+
+        //TODO: returning the nodes in this way so is easy to compare/debug
 				if(i == 0)
           return Edge(m_, m_->g_nodes_.add_edge(nodes_[0].gn_, nodes_[1].gn_) );
         
@@ -361,15 +357,16 @@ class Mesh {
       	
       	Point edge = p1-p2;
       	
+        //TODO: This prevents the z negative zeros, but nothing else. revert after all is working.
         return Point( edge.y - edge.z,
                       -edge.x,
                       0);
 
-      	///return cross(edge, Point(0,0,1));
+      	//return cross(edge, Point(0,0,1));
     	}
 
+      /** Calculates the area of a triangle */
       double area() const {
-        // http://www.mathopenref.com/coordtrianglearea.html
         Point a = nodes_[0].position();
         Point b = nodes_[1].position();
         Point c = nodes_[2].position();
@@ -394,9 +391,7 @@ class Mesh {
        * and y, exactly one of x == y, x < y, and y < x is true.
        */
       bool operator<(const Triangle& x) const {
-        // TODO: can we just compare triangle idx ? - I think so! 
         return std::tie(idx_,m_) < std::tie(x.idx_,m_);
-        //return std::tie(m_, nodes_[0], nodes_[1], nodes_[2]) < std::tie(x.m_, x.node(0), x.node(1), x.node(2));
       }
 
       /**
@@ -416,26 +411,6 @@ class Mesh {
       const triangle_value_type& value() const {
         return m_->g_triangles_.node(idx_).value().user_value;
       }
-
-
-
- // 			/**
-//        * Returns a Triangle adjacent to the edge idx provided.
-//        * @return triangle_type
-//       
-//       triangle_type triangle(idx_type edge_idx) const {
-//         // TODO: implement
-//       }
-// 
-// 
-//       /**
-//        * Returns a Triangle adjacent to the edge provided.
-//        * @return triangle_type
-//       
-//       triangle_type triangle(edge_type edge) const {
-//         // TODO: implement
-//       }
-
 
     private:
       
@@ -614,8 +589,11 @@ class Mesh {
       auto n2_idx = m_->g_triangles_.node(idx_).value().node_idx2;
       auto n3_idx = m_->g_triangles_.node(idx_).value().node_idx3;
       
-      return Triangle(m_,Node(m_,m_->g_nodes_.node(n1_idx)),Node(m_,m_->g_nodes_.node(n2_idx)),Node(m_,m_->g_nodes_.node(n3_idx))
-      ,idx_);
+      return Triangle(m_,
+                      Node(m_,m_->g_nodes_.node(n1_idx)),
+                      Node(m_,m_->g_nodes_.node(n2_idx)),
+                      Node(m_,m_->g_nodes_.node(n3_idx)),
+                      idx_);
     }
 
     /**
@@ -642,7 +620,7 @@ class Mesh {
    private:
 
     TriangleIterator(const Mesh* m, idx_type idx)
-        : m_(const_cast<Mesh*>(m)), idx_(idx) {
+      : m_(const_cast<Mesh*>(m)), idx_(idx) {
     }
 
     /** Reference to the mesh */
@@ -672,8 +650,6 @@ class Mesh {
   triangle_iterator triangle_end() const {
     return triangle_iterator( this, g_triangles_.size() );
   }
-
-
 
 
 
@@ -896,10 +872,10 @@ class Mesh {
       auto this_tri = m_->g_triangles_.node(this_tri_idx);
 
       return Triangle(m_,
-        Node(m_, m_->g_nodes_.node(this_tri.value().node_idx1)),
-        Node(m_, m_->g_nodes_.node(this_tri.value().node_idx2)),
-        Node(m_, m_->g_nodes_.node(this_tri.value().node_idx3)),
-        this_tri_idx);
+                      Node(m_, m_->g_nodes_.node(this_tri.value().node_idx1)),
+                      Node(m_, m_->g_nodes_.node(this_tri.value().node_idx2)),
+                      Node(m_, m_->g_nodes_.node(this_tri.value().node_idx3)),
+                      this_tri_idx);
     }
 
     /**
