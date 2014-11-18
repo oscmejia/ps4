@@ -154,7 +154,7 @@ void output_debuging_info(MESH& m, double t) {
               << " (" <<  tri.node(2).position() << ")" << "\n";
     std::cerr << "  Triangle QVar [Q_bar, water column characteristics] h=" <<  tri.value().q_bar.h 
               << " hu=" << tri.value().q_bar.hx 
-              << " hv=" << tri.value().q_bar.hy << " \n";
+              << " hv=" << tri.value().q_bar.hy << "\n";
 
     // Edge Info
     for(int w = 0; w < 3; ++w){
@@ -162,13 +162,20 @@ void output_debuging_info(MESH& m, double t) {
       std::cerr << "  Edge " << w << " (" <<  tri.edge(w).node1().position() << ") (" 
                 << tri.edge(w).node2().position() <<")\n";
       std::cerr << "    Normal (" <<  tri.normals_vector( e )  << ")\n";
-      std::cerr << "    Adj Triangles " ;
+      std::cerr << "    Adj Triangles" ;
         for (unsigned i=0; i<tri.edge(w).num_adj_triangles(); ++i)
-          std::cerr <<  tri.edge(w).triangle(i).index() << " ";
+          std::cerr << " " << tri.edge(w).triangle(i).index() ;
         std::cerr << "\n"; ;
-      std::cerr << "    Opposite Tri QVar h=" << tri.edge(w).triangle(0).value().q_bar.h 
-                << "  hu=" << tri.edge(w).triangle(0).value().q_bar.hx 
-                << " hv=" << tri.edge(w).triangle(0).value().q_bar.hy << " \n";
+      std::cerr << "    Opposite Tri QVar h=" << tri.edge(w).triangle(0).value().q_bar.h;
+
+      auto opp_tri = tri.edge(w).opposite_triangle(tri);
+      // when the edge is a boundary edge, the triangle will be equial
+      if(tri == opp_tri){
+        // no opposite triangle... what to do?
+      }
+      std::cerr << "  hu=" << opp_tri.value().q_bar.hx 
+                << " hv=" << opp_tri.value().q_bar.hy << "\n";
+      
 
       if(e.num_adj_triangles() == 1)
         std::cerr << "    Boundary";
@@ -228,8 +235,9 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
       QVar edge_flux = f( tri.normals_vector(e).x, 
                           tri.normals_vector(e).y, 
                           dt, 
-                          tri.value().q_bar, 
-                          boundary_triangle_qbar );
+                          boundary_triangle_qbar,
+                          tri.value().q_bar 
+                           );
 		 
 			// Add flux value to edge - note that edge_flux[i] is relative(outward) to e.triangle(i)
       // TODO: do we need to empty the fluxes vector before every iteration? 

@@ -299,6 +299,23 @@ class Mesh {
         return ge_.length();
       }
 
+      /** Returns the oposite triangle to this edge, based on the provided triangle
+       * If this is a boundary edge, returns the only triangle
+       */
+      triangle_type opposite_triangle(triangle_type tri) {
+        if(num_adj_triangles() < 2)
+          return tri;
+
+        auto adjs = ge_.value().adj_triangles_;
+        for (unsigned x =0; x < adjs.size(); ++x) {
+          if(tri.index() != adjs[x])
+            return  m_->triangle(ge_.value().adj_triangles_[x]);
+        }
+
+        // should never get to this point
+        assert(false);
+      }
+
     private:
 
       Mesh* m_;
