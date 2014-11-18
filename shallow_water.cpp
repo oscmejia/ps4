@@ -65,6 +65,7 @@ struct QVar {
 struct TriData {
   QVar q_bar;  //Qbar for a triangle
   QVar q_tmp;
+  std::vector<QVar> edge_fluxes; //debugging purposes, contains the outward flux for each edge 
 }; 
 
 /** Custom structure of data to store with Nodes */
@@ -177,14 +178,20 @@ void output_debuging_info(MESH& m, double t) {
                 << " hv=" << opp_tri.value().q_bar.hy << "\n";
       
 
-      if(e.num_adj_triangles() == 1)
-        std::cerr << "    Boundary";
-      else
-        std::cerr << "    Edge";
-      
-      std::cerr << " flux h=" << e.value().fluxes[0].h
-                << " hu=" << e.value().fluxes[0].hx 
-                << " hv=" << e.value().fluxes[0].hy <<  "\n";
+				 if(e.num_adj_triangles() == 1)
+					std::cerr << "    Boundary";
+				else
+					std::cerr << "    Edge";
+			
+// 				std::cerr << " flux h=" << e.value().fluxes[0].h
+// 									<< " hu=" << e.value().fluxes[0].hx 
+// 									<< " hv=" << e.value().fluxes[0].hy <<  "\n";
+
+				std::cerr << " flux h=" << tri.value().edge_fluxes[w].h
+									<< " hu=" << tri.value().edge_fluxes[w].hx 
+									<< " hv=" << tri.value().edge_fluxes[w].hy <<  "\n";
+									
+									
       /**
       // TODO: should we account for all fluxes in the fluxes vector?
       // I tried it, but the totals are different than Chris' values
@@ -208,70 +215,129 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
   // For each triangle, update Q_bar using the fluxes as in Equation 8.
   // NOTE: Much like symp_euler_step, this may require TWO for-loops
   
-  //Iterate through all edges and compute fluxes for them. 
-  //Enforce Boundary Conditions for edges w/ only 1 adjacent triangle
-  for (auto it = m.edge_begin(); it != m.edge_end(); ++it) {
-    auto e = *it;
-
-    // TODO: I'm calling clear() here. ok?
-    e.value().fluxes.clear(); 
-
-    //Calculate flux for each triangle adjacent to this edge
-    for(unsigned i = 0; i < e.num_adj_triangles(); ++i){ 
-      
-      //Adjacent triangle
-      auto tri = e.triangle(i);
-        
-      
-     
-      //Boundary Conditions
-      QVar boundary_triangle_qbar;
-      if (e.num_adj_triangles() == 1)
-     		boundary_triangle_qbar = QVar(tri.value().q_bar.h, 0, 0); 
-      else
-     		boundary_triangle_qbar = e.triangle(abs(i-1)).value().q_bar ; 	
-
-      //Calculate QVar
-      QVar edge_flux = f( tri.normals_vector(e).x, 
-                          tri.normals_vector(e).y, 
-                          dt, 
-                          boundary_triangle_qbar,
-                          tri.value().q_bar 
-                           );
-		 
-			// Add flux value to edge - note that edge_flux[i] is relative(outward) to e.triangle(i)
-      // TODO: do we need to empty the fluxes vector before every iteration? 
-			e.value().fluxes.push_back(edge_flux);  
-    }
-  }
   
-  output_debuging_info(m, t);
-
-  //Iterate through all triangles and now update Qbar using fluxes calculated above.
+  std::vector<QVar> sum_fluxes (m.num_triangles());
+  
+  
+  //Iterate through all triangles and calculate new_q.
   for (auto it = m.triangle_begin(); it != m.triangle_end(); ++it){
     auto tri = *it;
     
-    QVar sum_fluxes; 
-    //Iterate through triangle's 3 edges
-    for(int i = 0; i < 3; ++i){
-      auto e = tri.edge(i);
-      
-      //Figuring out which triangle this corresponds to in edge 
-      int ind;
-      if (tri == e.triangle(0))
-        ind = 0;
+    QVar sum_flux;
+    
+    //Iterate through each edge in this triangle
+    for (auto i = 0; i <3; ++i) {
+    	auto e = tri.edge(i);
+    
+    	//Boundary Conditions
+      QVar adj_triangle_qbar;
+      if (e.num_adj_triangles() == 1)
+     		adj_triangle_qbar = QVar(tri.value().q_bar.h, 0, 0); 
       else
-        ind = 1;
-            
-      sum_fluxes = sum_fluxes + e.value().fluxes[ind];
+     		adj_triangle_qbar = e.opposite_triangle(tri).value().q_bar ; //adj_triangle_qbar = e.triangle(abs(i-1)).value().q_bar ; 	
+     		
+    	
+    	QVar edge_flux = f( tri.normals_vector(e).x, 
+                          tri.normals_vector(e).y, 
+                          dt, 
+                          adj_triangle_qbar,
+                          tri.value().q_bar 
+                           );
+    
+    tri.value().edge_fluxes.push_back(edge_flux);
+//     	std::cerr<< "Edge flux for Triangle " << tri.index() <<  " Edge " << i <<  " \n"; 
+//     	 std::cerr << " flux h=" << edge_flux.h
+//                  << " hu=" << edge_flux.hx 
+//                  << " hv=" << edge_flux.hy <<  "\n";
+			
+    	sum_flux = sum_flux + edge_flux;
     }
     
-    // Equiation 8
-    tri.value().q_bar = tri.value().q_bar - sum_fluxes * (dt / tri.area());
+    sum_fluxes.push_back(sum_flux);
+  }
+  
+    output_debuging_info(m, t);
+    //Iterate through all triangles and now update Qbar using fluxes calculated above.
+  for (auto it = m.triangle_begin(); it != m.triangle_end(); ++it){
+    auto tri = *it;   
+    // Equation 8
+    tri.value().q_bar = tri.value().q_bar - sum_fluxes[tri.index()] * (dt / tri.area());
   }
   
   return t + dt;
 }
+
+
+ //  //################
+//   
+//   //Iterate through all edges and compute fluxes for them. 
+//   //Enforce Boundary Conditions for edges w/ only 1 adjacent triangle
+//   for (auto it = m.edge_begin(); it != m.edge_end(); ++it) {
+//     auto e = *it;
+// 
+//     // TODO: I'm calling clear() here. ok?
+//     e.value().fluxes.clear(); 
+// 
+//     //Calculate flux for each triangle adjacent to this edge
+//     for(unsigned i = 0; i < e.num_adj_triangles(); ++i){ 
+//       
+//       //Adjacent triangle
+//       auto tri = e.triangle(i);
+//         
+//       
+//      
+//       //Boundary Conditions
+//       QVar boundary_triangle_qbar;
+//       if (e.num_adj_triangles() == 1)
+//      		boundary_triangle_qbar = QVar(tri.value().q_bar.h, 0, 0); 
+//       else
+//      		boundary_triangle_qbar = e.triangle(abs(i-1)).value().q_bar ; 	
+// 
+//       //Calculate QVar
+//       QVar edge_flux = f( tri.normals_vector(e).x, 
+//                           tri.normals_vector(e).y, 
+//                           dt, 
+//                           boundary_triangle_qbar,
+//                           tri.value().q_bar 
+//                            );
+// 		 
+// 			// Add flux value to edge - note that edge_flux[i] is relative(outward) to e.triangle(i)
+//       // TODO: do we need to empty the fluxes vector before every iteration? 
+// 			e.value().fluxes.push_back(edge_flux); 
+// 			//if (i == 1)
+// 				//assert(e.value().fluxes[0].h == -edge_flux.h);
+// 				//assert(e.value().fluxes[0].hv == -edge_flux.hv);
+// 				//assert(e.value().fluxes[0].hu == -edge_flux.hu); 
+//     }
+//   }
+//   
+//  output_debuging_info(m, t);
+
+ //  //Iterate through all triangles and now update Qbar using fluxes calculated above.
+//   for (auto it = m.triangle_begin(); it != m.triangle_end(); ++it){
+//     auto tri = *it;
+//     
+//     QVar sum_fluxes; 
+//     //Iterate through triangle's 3 edges
+//     for(int i = 0; i < 3; ++i){
+//       auto e = tri.edge(i);
+//       
+//       //Figuring out which triangle this corresponds to in edge 
+//       int ind;
+//       if (tri == e.triangle(0))
+//         ind = 0;
+//       else
+//         ind = 1;
+//             
+//       sum_fluxes = sum_fluxes + e.value().fluxes[ind];
+//     }
+//     
+//     // Equation 8
+//     tri.value().q_bar = tri.value().q_bar - sum_fluxes * (dt / tri.area());
+//   }
+//   
+//   return t + dt;
+// }
 
 
 
@@ -390,7 +456,7 @@ int main(int argc, char* argv[])
 
   /** Time variables */
   double t_start = 0;
-  double t_end = 10;
+  double t_end = 0.3;
 
   // Preconstruct a Flux functor
   EdgeFluxCalculator f;
