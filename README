@@ -1,0 +1,29 @@
+eam:
+Oscar Mejia, Carolina Nobre
+
+Our homework is available in both a master branch, and a parallel debugging branch which 
+contains all of our (extensive) debugging code. 
+
+Impressions of working in a team:
+
+Working in a team was an incredibly rewarding experience for us. We were really able to balance
+out each other's strengths and make significant progress on the pset within days of starting it. 
+
+
+Comments:
+
+We got the pset pretty much completed by Saturday night. However, our debugging statements showed
+that we were off when calculating the new QVar values for a triangle within the step function. 
+
+Both of us went to all office hours (Wed, Thursday, Monday, and Tuesday) but the TFs were unable 
+to help us figure it out. We also posted on Piazza but to no avail. 
+
+After spending countless hours trying to figure out what the problem was we hit our max late hours 
+and had to turn the pset in. 
+
+We would just like to point out that this was not a case of last minute debugging. The past 3 days 
+have been spent trying to figure out this one bug. We believe the rest of the code is implemented correctly
+according to feedback received both in part A and from TFs throughout the process. 
+
+So while our code does not produce the visualizations required, we believe it is because of this bug,
+but that hopefully our feedback/evaluation on this pset will not be significantly hampered by it!
