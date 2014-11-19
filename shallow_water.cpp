@@ -263,10 +263,6 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
   
   output_debuging_info(m, t);
   //Iterate through all triangles and now update Qbar using fluxes calculated above.
-  
-
-  //if(t == 0)
-  //  return t + dt;
 
   int l = 0;  
   for (auto it = m.triangle_begin(); it != m.triangle_end(); ++it){
@@ -274,14 +270,18 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
     // Equation 8
     if(l == 0){
       std::cout << "===========> "<< sum_fluxes[tri.index()].h << " , " << sum_fluxes[tri.index()].hx << " , " << sum_fluxes[tri.index()].hy << std::endl;
+      auto prod = tri.value().q_tmp * (dt / tri.area());
+      std::cout << "prod > "<< prod.h << " , " << prod.hx << " , " << prod.hy << std::endl;
+      std::cout << "dt > " << dt << std::endl;
+      std::cout << "dt/area > " << (dt / tri.area()) << std::endl;
       //std::cout << "           > "<< tri.value().q_tmp.h << " , " << tri.value().q_tmp.hx << " , " << tri.value().q_tmp.hy << std::endl;
-
-
     }
 
     ++l;
     tri.value().q_bar = tri.value().q_bar - (tri.value().q_tmp * (dt / tri.area()));
     //tri.value().q_bar = tri.value().q_bar - (sum_fluxes[tri.index()] * (dt / tri.area()));
+    std::cout << "*** "<< tri.value().q_bar.h << " , " << tri.value().q_bar.hx << " , " << tri.value().q_bar.hy << std::endl;
+      
   }
   
   return t + dt;
