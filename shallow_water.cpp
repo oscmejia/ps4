@@ -167,7 +167,7 @@ void output_debuging_info(MESH& m, double t) {
         for (unsigned i=0; i<tri.edge(w).num_adj_triangles(); ++i)
           std::cerr << " " << tri.edge(w).triangle(i).index() ;
         std::cerr << "\n"; ;
-      std::cerr << "    Opposite Tri QVar h=" << tri.edge(w).triangle(0).value().q_bar.h;
+      std::cerr << "    Opposite Tri QVar h=" << tri.edge(w).opposite_triangle(tri).value().q_bar.h;
 
       auto opp_tri = tri.edge(w).opposite_triangle(tri);
       // when the edge is a boundary edge, the triangle will be equial
@@ -215,10 +215,8 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
   // For each triangle, update Q_bar using the fluxes as in Equation 8.
   // NOTE: Much like symp_euler_step, this may require TWO for-loops
   
-  
-  std::vector<QVar> sum_fluxes (m.num_triangles());
-  
-  
+  std::vector<QVar> sum_fluxes;// (m.num_triangles());
+   
   //Iterate through all triangles and calculate new_q.
   for (auto it = m.triangle_begin(); it != m.triangle_end(); ++it){
     auto tri = *it;
@@ -240,16 +238,13 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
     	QVar edge_flux = f( tri.normals_vector(e).x, 
                           tri.normals_vector(e).y, 
                           dt, 
-                          adj_triangle_qbar,
-                          tri.value().q_bar 
+                          tri.value().q_bar ,
+                          adj_triangle_qbar
                            );
     
-    tri.value().edge_fluxes.push_back(edge_flux);
-//     	std::cerr<< "Edge flux for Triangle " << tri.index() <<  " Edge " << i <<  " \n"; 
-//     	 std::cerr << " flux h=" << edge_flux.h
-//                  << " hu=" << edge_flux.hx 
-//                  << " hv=" << edge_flux.hy <<  "\n";
-			
+    //for debugging purposes only
+    	tri.value().edge_fluxes.push_back(edge_flux); 
+    			
     	sum_flux = sum_flux + edge_flux;
     }
     
@@ -261,7 +256,7 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
   for (auto it = m.triangle_begin(); it != m.triangle_end(); ++it){
     auto tri = *it;   
     // Equation 8
-    tri.value().q_bar = tri.value().q_bar - sum_fluxes[tri.index()] * (dt / tri.area());
+    tri.value().q_bar = tri.value().q_bar - (sum_fluxes[tri.index()] * (dt / tri.area()));
   }
   
   return t + dt;
@@ -456,7 +451,7 @@ int main(int argc, char* argv[])
 
   /** Time variables */
   double t_start = 0;
-  double t_end = 0.3;
+  double t_end = 10;
 
   // Preconstruct a Flux functor
   EdgeFluxCalculator f;
