@@ -220,17 +220,17 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
       //for debugging purposes only
     	tri.value().edge_fluxes.push_back(edge_flux);	
     	sum_flux = sum_flux + edge_flux;
-
     }
-    
+
+    //for debugging purposes only
     tri.value().q_tmp = sum_flux;
     sum_fluxes.push_back(sum_flux);
     
   }
   
   output_debuging_info(m, t);
-  //Iterate through all triangles and now update Qbar using fluxes calculated above.
 
+  //Iterate through all triangles and now update Qbar using fluxes calculated above.
   for (auto it = m.triangle_begin(); it != m.triangle_end(); ++it){
     auto tri = *it;   
     // Equation 8
