@@ -245,17 +245,20 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
                           tri.value().q_bar ,
                           adj_triangle_qbar);
       
-      std::cout << ">>>>>> "<< edge_flux.h << " , " << edge_flux.hx << " , " << edge_flux.hy << std::endl;
+      std::cout << "edge >>>>>> "<< edge_flux.h << " , " << edge_flux.hx << " , " << edge_flux.hy << std::endl;
       
       //for debugging purposes only
     	tri.value().edge_fluxes.push_back(edge_flux);	
     	sum_flux = sum_flux + edge_flux;
 
     }
-
+    std::cout << "tri.value().edge_fluxes.size() >>>>>> "<< tri.value().edge_fluxes.size() << std::endl;
+    
     tri.value().q_tmp = sum_flux;
     sum_fluxes.push_back(sum_flux);
     
+    std::cout << "sum_flux: "<< sum_flux.h << " , " << sum_flux.hx << " , " << sum_flux.hy << std::endl;
+    std::cout << std::endl;
     //std::cout << sum_flux.h << " , " << sum_flux.hx << " , " << sum_flux.hy << std::endl;
     //std::cout << tri.value().q_tmp.h << " , " << tri.value().q_tmp.hx << " , " << tri.value().q_tmp.hy << std::endl;
     //assert(sum_flux == tri.value().q_tmp);
