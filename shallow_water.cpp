@@ -60,11 +60,6 @@ struct QVar {
   
 };
 
-// HW4B: Placeholder for Mesh Type!
-// Define NodeData, EdgeData, TriData, etc
-// or redefine for your particular Mesh
-
-
 /** Custom structure of data to store with Triangles */
 struct TriData {
   QVar q_bar;  //Qbar for a triangle
@@ -79,13 +74,6 @@ struct NodeData {
 
 /** Custom structure of data to store with Edges */
 struct EdgeData {
-  QVar total_flux() {
-    QVar q;
-    for(auto it = fluxes.begin(); it != fluxes.end(); ++it)
-      q = q + *it;
-    return q;
-  }
-  std::vector<QVar> fluxes ;  //vector of up to 2 element with fluxes (Qvars) for adj triangles
 };
 
 typedef Mesh<TriData, NodeData, EdgeData> MeshType;
@@ -174,14 +162,10 @@ void output_debuging_info(MESH& m, double t) {
       std::cerr << "    Opposite Tri QVar h=" << tri.edge(w).opposite_triangle(tri).value().q_bar.h;
 
       auto opp_tri = tri.edge(w).opposite_triangle(tri);
-      // when the edge is a boundary edge, the triangle will be equial
-      if(tri == opp_tri){
-        // no opposite triangle... what to do?
-      }
+      // when the edge is a boundary edge, the triangle will be equal
       std::cerr << "  hu=" << opp_tri.value().q_bar.hx 
                 << " hv=" << opp_tri.value().q_bar.hy << "\n";
       
-
 			if(e.num_adj_triangles() == 1)
 				std::cerr << "    Boundary";
 			else
@@ -190,14 +174,6 @@ void output_debuging_info(MESH& m, double t) {
 			std::cerr << " flux h=" << tri.value().edge_fluxes[w].h
 								<< " hu=" << tri.value().edge_fluxes[w].hx 
 								<< " hv=" << tri.value().edge_fluxes[w].hy <<  "\n";
-			
-									
-      /**
-      // TODO: should we account for all fluxes in the fluxes vector?
-      // I tried it, but the totals are different than Chris' values
-      std::cerr << " flux h=" << e.value().total_flux().h
-                << " hu=" << e.value().total_flux().hx 
-                << " hv=" << e.value().total_flux().hy <<  "\n";**/
     }
     std::cerr << "\n";
   }
@@ -223,68 +199,43 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
     
     QVar sum_flux(0,0,0);
     tri.value().edge_fluxes.clear();
-    assert(tri.value().edge_fluxes.size() == 0);
-    std::cout << "sum_flux(1): "<< sum_flux.h << " , " << sum_flux.hx << " , " << sum_flux.hy << std::endl;
+    
     //Iterate through each edge in this triangle
     for (auto i = 0; i <3; ++i) {
     	auto e = tri.edge(i);
     
     	//Boundary Conditions
       QVar adj_triangle_qbar;
-      assert(e.num_adj_triangles() > 0 && e.num_adj_triangles() < 3);
-      //std::cout << "num_adj_triangles " << e.num_adj_triangles() << std::endl;
       if (e.num_adj_triangles() == 1)
      		adj_triangle_qbar = QVar(tri.value().q_bar.h, 0, 0); 
       else
      		adj_triangle_qbar = e.opposite_triangle(tri).value().q_bar ; //adj_triangle_qbar = e.triangle(abs(i-1)).value().q_bar ; 	
-     		
-    	
+     	
     	QVar edge_flux = f( tri.normals_vector(e).x, 
                           tri.normals_vector(e).y, 
                           dt, 
                           tri.value().q_bar ,
                           adj_triangle_qbar);
       
-      std::cout << "edge >>>>>> "<< edge_flux.h << " , " << edge_flux.hx << " , " << edge_flux.hy << std::endl;
-      
       //for debugging purposes only
     	tri.value().edge_fluxes.push_back(edge_flux);	
     	sum_flux = sum_flux + edge_flux;
 
     }
-    std::cout << "tri.value().edge_fluxes.size() >>>>>> "<< tri.value().edge_fluxes.size() << std::endl;
     
     tri.value().q_tmp = sum_flux;
     sum_fluxes.push_back(sum_flux);
     
-    std::cout << "sum_flux: "<< sum_flux.h << " , " << sum_flux.hx << " , " << sum_flux.hy << std::endl;
-    std::cout << std::endl;
-    //std::cout << sum_flux.h << " , " << sum_flux.hx << " , " << sum_flux.hy << std::endl;
-    //std::cout << tri.value().q_tmp.h << " , " << tri.value().q_tmp.hx << " , " << tri.value().q_tmp.hy << std::endl;
-    //assert(sum_flux == tri.value().q_tmp);
   }
   
   output_debuging_info(m, t);
   //Iterate through all triangles and now update Qbar using fluxes calculated above.
 
-  int l = 0;  
   for (auto it = m.triangle_begin(); it != m.triangle_end(); ++it){
     auto tri = *it;   
     // Equation 8
-    if(l == 0){
-      std::cout << "===========> "<< sum_fluxes[tri.index()].h << " , " << sum_fluxes[tri.index()].hx << " , " << sum_fluxes[tri.index()].hy << std::endl;
-      auto prod = tri.value().q_tmp * (dt / tri.area());
-      std::cout << "prod > "<< prod.h << " , " << prod.hx << " , " << prod.hy << std::endl;
-      std::cout << "dt > " << dt << std::endl;
-      std::cout << "dt/area > " << (dt / tri.area()) << std::endl;
-      //std::cout << "           > "<< tri.value().q_tmp.h << " , " << tri.value().q_tmp.hx << " , " << tri.value().q_tmp.hy << std::endl;
-    }
-
-    ++l;
     tri.value().q_bar = tri.value().q_bar - (tri.value().q_tmp * (dt / tri.area()));
     //tri.value().q_bar = tri.value().q_bar - (sum_fluxes[tri.index()] * (dt / tri.area()));
-    std::cout << "*** "<< tri.value().q_bar.h << " , " << tri.value().q_bar.hx << " , " << tri.value().q_bar.hy << std::endl;
-      
   }
   
   return t + dt;
