@@ -224,7 +224,7 @@ double hyperbolic_step(MESH& m, FLUX& f, double t, double dt) {
     QVar sum_flux;
     tri.value().edge_fluxes.clear();
     assert(tri.value().edge_fluxes.size() == 0);
-
+    std::cout << "sum_flux(1): "<< sum_flux.h << " , " << sum_flux.hx << " , " << sum_flux.hy << std::endl;
     //Iterate through each edge in this triangle
     for (auto i = 0; i <3; ++i) {
     	auto e = tri.edge(i);
